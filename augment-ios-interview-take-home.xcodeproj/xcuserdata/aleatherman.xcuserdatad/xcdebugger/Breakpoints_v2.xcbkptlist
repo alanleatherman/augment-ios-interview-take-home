@@ -16,8 +16,124 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "83"
             endingLineNumber = "83"
-            landmarkName = "getDailyForecast(for:)"
+            landmarkName = "getOneCallData(for:)"
             landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "F14FCDFA-5904-4D39-B40E-AC4D7FB0D6AC"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "augment-ios-interview-take-home/Services/NetworkService.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "23"
+            endingLineNumber = "23"
+            landmarkName = "fetch(_:from:)"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  uuid = "F14FCDFA-5904-4D39-B40E-AC4D7FB0D6AC - 979144917d7a794f"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(1) suspend resume partial function for generic specialization &lt;augment_ios_interview_take_home.OpenWeatherMapCurrentResponse&gt; of augment_ios_interview_take_home.NetworkService.fetch&lt;&#x3c4;_0_0 where &#x3c4;_0_0: Swift.Decodable, &#x3c4;_0_0: Swift.Encodable&gt;(_: &#x3c4;_0_0.Type, from: Foundation.URL) async throws -&gt; &#x3c4;_0_0"
+                  moduleName = "augment-ios-interview-take-home"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/aleatherman/Documents/CODE/iOS/TAKEHOMES/AUGMENT/augment-ios-interview-take-home/augment-ios-interview-take-home/Services/NetworkService.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "24"
+                  endingLineNumber = "24">
+               </Location>
+               <Location
+                  uuid = "F14FCDFA-5904-4D39-B40E-AC4D7FB0D6AC - ea7ae10a88494444"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(2) await resume partial function for generic specialization &lt;augment_ios_interview_take_home.OpenWeatherMapCurrentResponse&gt; of augment_ios_interview_take_home.NetworkService.fetch&lt;&#x3c4;_0_0 where &#x3c4;_0_0: Swift.Decodable, &#x3c4;_0_0: Swift.Encodable&gt;(_: &#x3c4;_0_0.Type, from: Foundation.URL) async throws -&gt; &#x3c4;_0_0"
+                  moduleName = "augment-ios-interview-take-home"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/aleatherman/Documents/CODE/iOS/TAKEHOMES/AUGMENT/augment-ios-interview-take-home/augment-ios-interview-take-home/Services/NetworkService.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "24"
+                  endingLineNumber = "24">
+               </Location>
+               <Location
+                  uuid = "F14FCDFA-5904-4D39-B40E-AC4D7FB0D6AC - 6fc7ac7943236549"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(3) suspend resume partial function for generic specialization &lt;augment_ios_interview_take_home.OpenWeatherMapCurrentResponse&gt; of augment_ios_interview_take_home.NetworkService.fetch&lt;&#x3c4;_0_0 where &#x3c4;_0_0: Swift.Decodable, &#x3c4;_0_0: Swift.Encodable&gt;(_: &#x3c4;_0_0.Type, from: Foundation.URL) async throws -&gt; &#x3c4;_0_0"
+                  moduleName = "augment-ios-interview-take-home"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/aleatherman/Documents/CODE/iOS/TAKEHOMES/AUGMENT/augment-ios-interview-take-home/augment-ios-interview-take-home/Services/NetworkService.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "24"
+                  endingLineNumber = "24">
+               </Location>
+               <Location
+                  uuid = "F14FCDFA-5904-4D39-B40E-AC4D7FB0D6AC - 8c2d5fb5abf4e34a"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(4) suspend resume partial function for generic specialization &lt;augment_ios_interview_take_home.OpenWeatherMapCurrentResponse&gt; of augment_ios_interview_take_home.NetworkService.fetch&lt;&#x3c4;_0_0 where &#x3c4;_0_0: Swift.Decodable, &#x3c4;_0_0: Swift.Encodable&gt;(_: &#x3c4;_0_0.Type, from: Foundation.URL) async throws -&gt; &#x3c4;_0_0"
+                  moduleName = "augment-ios-interview-take-home"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/aleatherman/Documents/CODE/iOS/TAKEHOMES/AUGMENT/augment-ios-interview-take-home/augment-ios-interview-take-home/Services/NetworkService.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "24"
+                  endingLineNumber = "24">
+               </Location>
+               <Location
+                  uuid = "F14FCDFA-5904-4D39-B40E-AC4D7FB0D6AC - 33938417e9647948"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(1) suspend resume partial function for generic specialization &lt;augment_ios_interview_take_home.OpenWeatherMapForecastResponse&gt; of augment_ios_interview_take_home.NetworkService.fetch&lt;&#x3c4;_0_0 where &#x3c4;_0_0: Swift.Decodable, &#x3c4;_0_0: Swift.Encodable&gt;(_: &#x3c4;_0_0.Type, from: Foundation.URL) async throws -&gt; &#x3c4;_0_0"
+                  moduleName = "augment-ios-interview-take-home"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/aleatherman/Documents/CODE/iOS/TAKEHOMES/AUGMENT/augment-ios-interview-take-home/augment-ios-interview-take-home/Services/NetworkService.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "24"
+                  endingLineNumber = "24">
+               </Location>
+               <Location
+                  uuid = "F14FCDFA-5904-4D39-B40E-AC4D7FB0D6AC - 294e5b78687b445"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(2) await resume partial function for generic specialization &lt;augment_ios_interview_take_home.OpenWeatherMapForecastResponse&gt; of augment_ios_interview_take_home.NetworkService.fetch&lt;&#x3c4;_0_0 where &#x3c4;_0_0: Swift.Decodable, &#x3c4;_0_0: Swift.Encodable&gt;(_: &#x3c4;_0_0.Type, from: Foundation.URL) async throws -&gt; &#x3c4;_0_0"
+                  moduleName = "augment-ios-interview-take-home"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/aleatherman/Documents/CODE/iOS/TAKEHOMES/AUGMENT/augment-ios-interview-take-home/augment-ios-interview-take-home/Services/NetworkService.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "24"
+                  endingLineNumber = "24">
+               </Location>
+               <Location
+                  uuid = "F14FCDFA-5904-4D39-B40E-AC4D7FB0D6AC - 944256bae04da54a"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(3) suspend resume partial function for generic specialization &lt;augment_ios_interview_take_home.OpenWeatherMapForecastResponse&gt; of augment_ios_interview_take_home.NetworkService.fetch&lt;&#x3c4;_0_0 where &#x3c4;_0_0: Swift.Decodable, &#x3c4;_0_0: Swift.Encodable&gt;(_: &#x3c4;_0_0.Type, from: Foundation.URL) async throws -&gt; &#x3c4;_0_0"
+                  moduleName = "augment-ios-interview-take-home"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/aleatherman/Documents/CODE/iOS/TAKEHOMES/AUGMENT/augment-ios-interview-take-home/augment-ios-interview-take-home/Services/NetworkService.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "24"
+                  endingLineNumber = "24">
+               </Location>
+            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

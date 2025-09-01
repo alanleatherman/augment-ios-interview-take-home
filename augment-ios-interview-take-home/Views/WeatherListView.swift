@@ -55,8 +55,17 @@ struct WeatherRowView: View {
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text(city.name)
-                    .font(.headline)
+                HStack(spacing: 4) {
+                    // Show location icon only for GPS-detected current location
+                    if city.isCurrentLocation {
+                        Image(systemName: "location.fill")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Text(city.name)
+                        .font(.headline)
+                }
                 
                 if let weather = weather {
                     Text(weather.description.capitalized)

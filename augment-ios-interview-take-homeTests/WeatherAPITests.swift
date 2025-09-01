@@ -65,9 +65,10 @@ final class WeatherAPITests: XCTestCase {
             let hourlyForecast = try await repository.getHourlyForecast(for: testCity)
             let dailyForecast = try await repository.getDailyForecast(for: testCity)
             
-            // Verify hourly forecast
+            // Verify hourly forecast (5-day forecast API provides data every 3 hours for 5 days = 40 data points)
             XCTAssertFalse(hourlyForecast.isEmpty, "Hourly forecast should not be empty")
-            XCTAssertLessThanOrEqual(hourlyForecast.count, 8, "Should return at most 8 hourly forecasts")
+            XCTAssertLessThanOrEqual(hourlyForecast.count, 40, "Should return at most 40 forecast data points")
+            XCTAssertGreaterThanOrEqual(hourlyForecast.count, 30, "Should return at least 30 forecast data points")
             
             for hourly in hourlyForecast {
                 XCTAssertGreaterThan(hourly.temperature, -50, "Hourly temperature should be reasonable")
@@ -75,9 +76,10 @@ final class WeatherAPITests: XCTestCase {
                 XCTAssertFalse(hourly.iconCode.isEmpty, "Hourly icon code should not be empty")
             }
             
-            // Verify daily forecast
+            // Verify daily forecast (5-day forecast API provides up to 5 days)
             XCTAssertFalse(dailyForecast.isEmpty, "Daily forecast should not be empty")
             XCTAssertLessThanOrEqual(dailyForecast.count, 5, "Should return at most 5 daily forecasts")
+            XCTAssertGreaterThanOrEqual(dailyForecast.count, 3, "Should return at least 3 daily forecasts")
             
             for daily in dailyForecast {
                 XCTAssertGreaterThan(daily.temperatureMin, -50, "Daily min temperature should be reasonable")
@@ -94,6 +96,50 @@ final class WeatherAPITests: XCTestCase {
             
         } catch {
             XCTFail("Forecast API call failed: \(error)")
+        }
+    }
+    
+    func testFreeAPIComprehensiveData() async throws {
+        // Create a test city
+        let testCity = City(
+            name: "Austin",
+            countryCode: "US",
+            latitude: 30.2672,
+            longitude: -97.7431
+        )
+        
+        do {
+            let (weather, hourlyForecast, dailyForecast) = try await repository.getCompleteWeatherData(for: testCity)
+            
+            // Verify current weather
+            XCTAssertGreaterThan(weather.temperature, -50, "Temperature should be reasonable")
+            XCTAssertLessThan(weather.temperature, 60, "Temperature should be reasonable")
+            XCTAssertFalse(weather.description.isEmpty, "Description should not be empty")
+            
+            // Verify hourly forecast (5-day forecast provides data every 3 hours)
+            XCTAssertFalse(hourlyForecast.isEmpty, "Hourly forecast should not be empty")
+            XCTAssertLessThanOrEqual(hourlyForecast.count, 40, "Should return at most 40 forecast data points")
+            XCTAssertGreaterThanOrEqual(hourlyForecast.count, 30, "Should return at least 30 forecast data points")
+            
+            // Verify that forecast data is every 3 hours (3-hour intervals)
+            if hourlyForecast.count >= 2 {
+                let firstTime = hourlyForecast[0].time
+                let secondTime = hourlyForecast[1].time
+                let timeDifference = secondTime.timeIntervalSince(firstTime)
+                XCTAssertEqual(timeDifference, 10800, accuracy: 60, "Forecast intervals should be 3 hours apart")
+            }
+            
+            // Verify daily forecast (up to 5 days)
+            XCTAssertFalse(dailyForecast.isEmpty, "Daily forecast should not be empty")
+            XCTAssertLessThanOrEqual(dailyForecast.count, 5, "Should return at most 5 daily forecasts")
+            
+            print("✅ Free API comprehensive data test passed")
+            print("Current temperature: \(weather.temperature)°C")
+            print("Hourly forecasts: \(hourlyForecast.count)")
+            print("Daily forecasts: \(dailyForecast.count)")
+            
+        } catch {
+            XCTFail("Free API comprehensive data call failed: \(error)")
         }
     }
     

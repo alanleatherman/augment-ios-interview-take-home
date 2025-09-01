@@ -26,6 +26,7 @@ struct APIConfiguration {
         static let currentWeather = "https://api.openweathermap.org/data/2.5/weather"
         static let forecast = "https://api.openweathermap.org/data/2.5/forecast"
         static let geocoding = "https://api.openweathermap.org/geo/1.0/direct"
+        // Note: One Call 3.0 API requires paid subscription - using free alternatives above
     }
     
     /// API Configuration

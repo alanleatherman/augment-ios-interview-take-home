@@ -37,7 +37,7 @@ final class WeatherInteractor: WeatherInteractorProtocol {
             // If no cities exist, add predefined ones
             if cities.isEmpty {
                 print("📍 No cities found, adding default cities...")
-                for city in City.predefinedCities.prefix(3) {
+                for city in City.predefinedCities {
                     print("📍 Adding city: \(city.name)")
                     await addCity(city)
                 }
@@ -47,6 +47,9 @@ final class WeatherInteractor: WeatherInteractorProtocol {
                 // Load weather for existing cities
                 await refreshAllWeather()
             }
+            
+            // Restore the last selected city index
+            restoreSelectedCityIndex()
             
             appState.weatherState.lastRefresh = Date()
         } catch {
@@ -230,5 +233,42 @@ final class WeatherInteractor: WeatherInteractorProtocol {
         if error != nil {
             await refreshAllWeather()
         }
+    }
+    
+    // MARK: - Selected City Management
+    
+    func updateSelectedCityIndex(_ index: Int) {
+        guard index >= 0 && index < appState.weatherState.cities.count else { return }
+        appState.weatherState.selectedCityIndex = index
+        appState.appSettings.lastSelectedCityIndex = index
+        print("📍 Updated selected city index to: \(index)")
+    }
+    
+    private func restoreSelectedCityIndex() {
+        let savedIndex = appState.appSettings.lastSelectedCityIndex
+        let maxIndex = max(0, appState.weatherState.cities.count - 1)
+        appState.weatherState.selectedCityIndex = min(savedIndex, maxIndex)
+        print("📍 Restored selected city index: \(appState.weatherState.selectedCityIndex)")
+    }
+    
+    // MARK: - Home City Management
+    
+    func markCurrentCityAsHome() {
+        guard !appState.weatherState.cities.isEmpty else { return }
+        let currentIndex = appState.weatherState.selectedCityIndex
+        guard currentIndex < appState.weatherState.cities.count else { return }
+        
+        let currentCity = appState.weatherState.cities[currentIndex]
+        appState.appSettings.homeCityId = currentCity.id
+        print("📍 Marked city as home: \(currentCity.name)")
+    }
+    
+    func clearHomeCity() {
+        appState.appSettings.homeCityId = nil
+        print("📍 Cleared home city")
+    }
+    
+    func isHomeCity(_ city: City) -> Bool {
+        return appState.appSettings.homeCityId == city.id
     }
 }

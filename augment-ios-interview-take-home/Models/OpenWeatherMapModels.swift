@@ -120,7 +120,180 @@ struct CityInfo: Codable {
     let sunset: TimeInterval
 }
 
+// MARK: - One Call API 3.0 Response
+
+struct OneCallAPIResponse: Codable {
+    let lat: Double
+    let lon: Double
+    let timezone: String
+    let timezoneOffset: Int
+    let current: CurrentWeatherData
+    let hourly: [HourlyWeatherData]
+    let daily: [DailyWeatherData]
+    
+    enum CodingKeys: String, CodingKey {
+        case lat, lon, timezone, current, hourly, daily
+        case timezoneOffset = "timezone_offset"
+    }
+}
+
+struct CurrentWeatherData: Codable {
+    let dt: TimeInterval
+    let sunrise: TimeInterval?
+    let sunset: TimeInterval?
+    let temp: Double
+    let feelsLike: Double
+    let pressure: Int
+    let humidity: Int
+    let dewPoint: Double?
+    let uvi: Double?
+    let clouds: Int
+    let visibility: Int
+    let windSpeed: Double
+    let windDeg: Int?
+    let windGust: Double?
+    let weather: [WeatherCondition]
+    
+    enum CodingKeys: String, CodingKey {
+        case dt, sunrise, sunset, temp, pressure, humidity, clouds, visibility, weather
+        case feelsLike = "feels_like"
+        case dewPoint = "dew_point"
+        case uvi
+        case windSpeed = "wind_speed"
+        case windDeg = "wind_deg"
+        case windGust = "wind_gust"
+    }
+}
+
+struct HourlyWeatherData: Codable {
+    let dt: TimeInterval
+    let temp: Double
+    let feelsLike: Double
+    let pressure: Int
+    let humidity: Int
+    let dewPoint: Double?
+    let uvi: Double?
+    let clouds: Int
+    let visibility: Int
+    let windSpeed: Double
+    let windDeg: Int?
+    let windGust: Double?
+    let weather: [WeatherCondition]
+    let pop: Double // Probability of precipitation
+    
+    enum CodingKeys: String, CodingKey {
+        case dt, temp, pressure, humidity, clouds, visibility, weather, pop
+        case feelsLike = "feels_like"
+        case dewPoint = "dew_point"
+        case uvi
+        case windSpeed = "wind_speed"
+        case windDeg = "wind_deg"
+        case windGust = "wind_gust"
+    }
+}
+
+struct DailyWeatherData: Codable {
+    let dt: TimeInterval
+    let sunrise: TimeInterval
+    let sunset: TimeInterval
+    let moonrise: TimeInterval?
+    let moonset: TimeInterval?
+    let moonPhase: Double?
+    let summary: String?
+    let temp: DailyTemperature
+    let feelsLike: DailyFeelsLike
+    let pressure: Int
+    let humidity: Int
+    let dewPoint: Double?
+    let windSpeed: Double
+    let windDeg: Int?
+    let windGust: Double?
+    let weather: [WeatherCondition]
+    let clouds: Int
+    let pop: Double
+    let uvi: Double?
+    
+    enum CodingKeys: String, CodingKey {
+        case dt, sunrise, sunset, moonrise, moonset, summary, temp, pressure, humidity, weather, clouds, pop, uvi
+        case moonPhase = "moon_phase"
+        case feelsLike = "feels_like"
+        case dewPoint = "dew_point"
+        case windSpeed = "wind_speed"
+        case windDeg = "wind_deg"
+        case windGust = "wind_gust"
+    }
+}
+
+struct DailyTemperature: Codable {
+    let day: Double
+    let min: Double
+    let max: Double
+    let night: Double
+    let eve: Double
+    let morn: Double
+}
+
+struct DailyFeelsLike: Codable {
+    let day: Double
+    let night: Double
+    let eve: Double
+    let morn: Double
+}
+
 // MARK: - Conversion Extensions
+
+extension OneCallAPIResponse {
+    func toWeather(for cityId: UUID) -> Weather {
+        let primaryWeather = current.weather.first ?? WeatherCondition(id: 0, main: "Unknown", description: "Unknown", icon: "01d")
+        
+        return Weather(
+            id: UUID(),
+            cityId: cityId,
+            temperature: current.temp,
+            feelsLike: current.feelsLike,
+            temperatureMin: daily.first?.temp.min ?? current.temp,
+            temperatureMax: daily.first?.temp.max ?? current.temp,
+            description: primaryWeather.description.capitalized,
+            iconCode: primaryWeather.icon,
+            humidity: current.humidity,
+            pressure: current.pressure,
+            windSpeed: current.windSpeed,
+            windDirection: current.windDeg ?? 0,
+            visibility: current.visibility,
+            lastUpdated: Date()
+        )
+    }
+    
+    func toHourlyWeather() -> [HourlyWeather] {
+        return hourly.prefix(48).map { hourlyData in
+            let primaryWeather = hourlyData.weather.first ?? WeatherCondition(id: 0, main: "Unknown", description: "Unknown", icon: "01d")
+            
+            return HourlyWeather(
+                id: UUID(),
+                time: Date(timeIntervalSince1970: hourlyData.dt),
+                temperature: hourlyData.temp,
+                iconCode: primaryWeather.icon,
+                description: primaryWeather.description.capitalized
+            )
+        }
+    }
+    
+    func toDailyWeather() -> [DailyWeather] {
+        return daily.prefix(10).map { dailyData in
+            let primaryWeather = dailyData.weather.first ?? WeatherCondition(id: 0, main: "Unknown", description: "Unknown", icon: "01d")
+            
+            return DailyWeather(
+                id: UUID(),
+                date: Date(timeIntervalSince1970: dailyData.dt),
+                temperatureMin: dailyData.temp.min,
+                temperatureMax: dailyData.temp.max,
+                iconCode: primaryWeather.icon,
+                description: primaryWeather.description.capitalized,
+                precipitationChance: dailyData.pop
+            )
+        }
+    }
+}
 
 extension OpenWeatherMapCurrentResponse {
     func toWeather(for cityId: UUID) -> Weather {

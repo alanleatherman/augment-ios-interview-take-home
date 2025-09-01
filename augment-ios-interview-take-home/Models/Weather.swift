@@ -51,6 +51,19 @@ struct Weather: Codable, Identifiable, Sendable {
         default: return "☀️"
         }
     }
+    
+    var detailedDescription: String? {
+        switch iconCode.prefix(2) {
+        case "01": return "Sunny conditions will continue for the rest of the day."
+        case "02": return "Partly cloudy conditions with occasional sun breaks."
+        case "03", "04": return "Cloudy skies with overcast conditions."
+        case "09", "10": return "Rain is expected. Consider bringing an umbrella."
+        case "11": return "Thunderstorms possible. Stay indoors if possible."
+        case "13": return "Snow is falling. Drive carefully and dress warmly."
+        case "50": return "Misty conditions with reduced visibility."
+        default: return "Current weather conditions will continue."
+        }
+    }
 }
 
 // MARK: - SwiftData Model for Caching

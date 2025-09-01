@@ -13,37 +13,110 @@ struct AddCityView: View {
     
     @State private var searchText = ""
     @State private var isLoading = false
+    @StateObject private var citySearchService = CitySearchService()
     
     private let predefinedCities = City.predefinedCities
     
-    private var filteredCities: [City] {
+    private var displayedCities: [City] {
         if searchText.isEmpty {
             return predefinedCities
         } else {
-            return predefinedCities.filter { city in
+            // First show predefined cities that match
+            let filteredPredefined = predefinedCities.filter { city in
                 city.name.localizedCaseInsensitiveContains(searchText) ||
                 city.countryCode.localizedCaseInsensitiveContains(searchText)
             }
+            
+            // Then add dynamic search results (avoiding duplicates)
+            let dynamicResults = citySearchService.searchResults.filter { searchResult in
+                !filteredPredefined.contains { predefined in
+                    predefined.name.lowercased() == searchResult.name.lowercased() &&
+                    predefined.countryCode.lowercased() == searchResult.countryCode.lowercased()
+                }
+            }
+            
+            return filteredPredefined + dynamicResults
         }
+    }
+    
+    private var isSearching: Bool {
+        citySearchService.isSearching
+    }
+    
+    private var shouldShowEmptyState: Bool {
+        !searchText.isEmpty && displayedCities.isEmpty && !isSearching
     }
     
     var body: some View {
         NavigationStack {
-            VStack {
+            VStack(spacing: 0) {
                 SearchBar(text: $searchText)
-                
-                List(filteredCities) { city in
-                    CityRowView(city: city) {
-                        await addCity(city)
+                    .onChange(of: searchText) { _, newValue in
+                        Task {
+                            await citySearchService.searchCities(query: newValue)
+                        }
                     }
-                }
                 
-                if filteredCities.isEmpty && !searchText.isEmpty {
-                    ContentUnavailableView(
-                        "No Cities Found",
-                        systemImage: "magnifyingglass",
-                        description: Text("Try searching for a different city name")
-                    )
+                if isSearching {
+                    // Loading state
+                    VStack {
+                        Spacer()
+                        VStack(spacing: 16) {
+                            ProgressView()
+                                .scaleEffect(1.2)
+                            
+                            Text("Searching cities...")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+                        Spacer()
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else if shouldShowEmptyState {
+                    // Empty state - takes full remaining space
+                    VStack {
+                        Spacer()
+                        VStack(spacing: 16) {
+                            Image(systemName: "magnifyingglass")
+                                .font(.system(size: 50))
+                                .foregroundColor(.secondary)
+                            
+                            Text("No Cities Found")
+                                .font(.title2)
+                                .fontWeight(.medium)
+                                .foregroundColor(.primary)
+                            
+                            Text("Try searching for a different city name")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
+                        }
+                        Spacer()
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    // List of cities
+                    List {
+                        if !searchText.isEmpty && !displayedCities.isEmpty {
+                            Section {
+                                ForEach(displayedCities) { city in
+                                    CityRowView(city: city) {
+                                        await addCity(city)
+                                    }
+                                }
+                            } header: {
+                                Text(searchText.isEmpty ? "Popular Cities" : "Search Results")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        } else {
+                            ForEach(displayedCities) { city in
+                                CityRowView(city: city) {
+                                    await addCity(city)
+                                }
+                            }
+                        }
+                    }
                 }
             }
             .navigationTitle("Add City")
@@ -77,14 +150,17 @@ struct SearchBar: View {
             Image(systemName: "magnifyingglass")
                 .foregroundColor(.secondary)
             
-            TextField("Search cities...", text: $text)
+            TextField("Search cities (e.g., Dallas, Rio, Tokyo)...", text: $text)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
+                .autocorrectionDisabled()
+                .textInputAutocapitalization(.words)
             
             if !text.isEmpty {
                 Button("Clear") {
                     text = ""
                 }
                 .font(.caption)
+                .foregroundColor(.blue)
             }
         }
         .padding(.horizontal)

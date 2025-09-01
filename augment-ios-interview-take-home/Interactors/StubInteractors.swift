@@ -11,6 +11,11 @@ import CoreLocation
 // MARK: - Stub Weather Interactor
 
 final class StubWeatherInteractor: WeatherInteractorProtocol {
+    
+    func updateSelectedCityIndex(_ index: Int) {
+        // No-op for stub
+    }
+    
     func loadInitialData() async {
         // No-op for stub
     }
@@ -41,6 +46,18 @@ final class StubWeatherInteractor: WeatherInteractorProtocol {
     
     func loadDailyForecast(for city: City) async {
         // No-op for stub
+    }
+    
+    func markCurrentCityAsHome() {
+        // No-op for stub
+    }
+    
+    func clearHomeCity() {
+        // No-op for stub
+    }
+    
+    func isHomeCity(_ city: City) -> Bool {
+        return false
     }
 }
 

@@ -24,6 +24,7 @@ class WeatherState {
     var isLoading = false
     var error: WeatherError?
     var lastRefresh: Date?
+    var selectedCityIndex: Int = 0 // Track the currently selected city
     
     // Computed properties
     var citiesWithWeather: [(City, Weather?)] {
@@ -63,6 +64,8 @@ class AppSettings {
     var refreshInterval: TimeInterval = 600 // 10 minutes
     var enableAutoRefresh = true
     var enableLocationServices = true
+    var lastSelectedCityIndex: Int = 0 // Persist the last selected city
+    var homeCityId: UUID? = nil // Track which city is marked as "home"
     
     enum TemperatureUnit: String, CaseIterable, Sendable {
         case celsius = "metric"

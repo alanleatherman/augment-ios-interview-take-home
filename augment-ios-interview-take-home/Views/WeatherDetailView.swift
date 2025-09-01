@@ -32,18 +32,21 @@ struct WeatherDetailView: View {
                 if let weather = weather {
                     CurrentWeatherCard(weather: weather)
                 } else {
-                    ProgressView("Loading weather...")
-                        .frame(height: 200)
+                    LoadingWeatherCard(cityName: city.name)
                 }
                 
                 // Hourly Forecast
                 if !hourlyForecast.isEmpty {
                     HourlyForecastView(forecast: hourlyForecast)
+                } else if weather != nil {
+                    LoadingHourlyForecastView()
                 }
                 
                 // Daily Forecast
                 if !dailyForecast.isEmpty {
                     DailyForecastView(forecast: dailyForecast)
+                } else if weather != nil {
+                    LoadingDailyForecastView()
                 }
             }
             .padding()
@@ -66,6 +69,63 @@ struct WeatherDetailView: View {
     private func refreshData() async {
         await interactors.weatherInteractor.refreshWeather(for: city)
         await loadForecastData()
+    }
+}
+
+struct LoadingWeatherCard: View {
+    let cityName: String
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            // City name
+            Text(cityName)
+                .font(.largeTitle)
+                .fontWeight(.light)
+                .foregroundColor(.primary)
+            
+            // Loading indicator
+            VStack(spacing: 16) {
+                ProgressView()
+                    .scaleEffect(1.5)
+                    .progressViewStyle(CircularProgressViewStyle(tint: .secondary))
+                
+                Text("Loading weather...")
+                    .font(.title2)
+                    .foregroundColor(.secondary)
+            }
+            .padding(.vertical, 40)
+            
+            Divider()
+            
+            // Mock weather details with placeholders
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 16) {
+                WeatherDetailPlaceholder(title: "Feels Like")
+                WeatherDetailPlaceholder(title: "Humidity")
+                WeatherDetailPlaceholder(title: "Wind")
+                WeatherDetailPlaceholder(title: "Pressure")
+            }
+        }
+        .padding()
+        .background(Color(.systemBackground))
+        .cornerRadius(16)
+        .shadow(radius: 4)
+    }
+}
+
+struct WeatherDetailPlaceholder: View {
+    let title: String
+    
+    var body: some View {
+        VStack(spacing: 4) {
+            Text(title)
+                .font(.caption)
+                .foregroundColor(.secondary)
+            
+            RoundedRectangle(cornerRadius: 4)
+                .fill(Color(.systemGray5))
+                .frame(height: 20)
+                .frame(maxWidth: 60)
+        }
     }
 }
 
@@ -149,6 +209,84 @@ struct HourlyForecastView: View {
                     }
                 }
                 .padding(.horizontal)
+            }
+        }
+        .padding(.vertical)
+        .background(Color(.systemBackground))
+        .cornerRadius(16)
+        .shadow(radius: 4)
+    }
+}
+
+struct LoadingHourlyForecastView: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Hourly Forecast")
+                .font(.headline)
+                .padding(.horizontal)
+            
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 16) {
+                    ForEach(0..<12, id: \.self) { _ in
+                        VStack(spacing: 8) {
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Color(.systemGray5))
+                                .frame(width: 30, height: 12)
+                            
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color(.systemGray5))
+                                .frame(width: 32, height: 32)
+                            
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Color(.systemGray5))
+                                .frame(width: 25, height: 16)
+                        }
+                        .padding(.vertical, 8)
+                        .frame(width: 60)
+                    }
+                }
+                .padding(.horizontal)
+            }
+        }
+        .padding(.vertical)
+        .background(Color(.systemBackground))
+        .cornerRadius(16)
+        .shadow(radius: 4)
+    }
+}
+
+struct LoadingDailyForecastView: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("10-Day Forecast")
+                .font(.headline)
+                .padding(.horizontal)
+            
+            VStack(spacing: 0) {
+                ForEach(0..<10, id: \.self) { index in
+                    HStack {
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(Color(.systemGray5))
+                            .frame(width: 60, height: 16)
+                        
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color(.systemGray5))
+                            .frame(width: 24, height: 24)
+                        
+                        Spacer()
+                        
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(Color(.systemGray5))
+                            .frame(width: 80, height: 16)
+                    }
+                    .padding(.horizontal)
+                    .padding(.vertical, 8)
+                    
+                    if index < 9 {
+                        Divider()
+                            .padding(.horizontal)
+                    }
+                }
             }
         }
         .padding(.vertical)

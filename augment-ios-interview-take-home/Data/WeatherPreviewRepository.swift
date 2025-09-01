@@ -81,6 +81,31 @@ final class WeatherPreviewRepository: WeatherRepositoryProtocol, @unchecked Send
         return try await getDailyForecast(for: city)
     }
     
+    // MARK: - One Call API Methods (comprehensive weather data)
+    
+    func getCompleteWeatherData(for city: City) async throws -> (weather: Weather, hourly: [HourlyWeather], daily: [DailyWeather]) {
+        // Simulate network delay for comprehensive data fetch
+        try await Task.sleep(nanoseconds: 800_000_000) // 0.8 seconds
+        
+        let weather = try await getCurrentWeather(for: city)
+        let hourly = try await getHourlyForecast(for: city)
+        let daily = try await getDailyForecast(for: city)
+        
+        return (weather: weather, hourly: hourly, daily: daily)
+    }
+    
+    func getCompleteWeatherData(latitude: Double, longitude: Double) async throws -> (weather: Weather, hourly: [HourlyWeather], daily: [DailyWeather]) {
+        let city = City(
+            name: "Current Location",
+            countryCode: "US",
+            latitude: latitude,
+            longitude: longitude,
+            isCurrentLocation: true
+        )
+        
+        return try await getCompleteWeatherData(for: city)
+    }
+    
     // MARK: - Caching (No-op for preview)
     
     @MainActor
@@ -180,16 +205,25 @@ final class WeatherPreviewRepository: WeatherRepositoryProtocol, @unchecked Send
         let conditions = ["01d", "02d", "03d", "04d", "09d", "10d"]
         let descriptions = ["Sunny", "Partly Cloudy", "Cloudy", "Overcast", "Light Rain", "Rain"]
         
-        for i in 0..<24 {
-            let time = Date().addingTimeInterval(TimeInterval(i * 3600))
+        // Generate 48 hours of true hourly data (as per One Call API 3.0 spec)
+        for i in 0..<48 {
+            let time = Date().addingTimeInterval(TimeInterval(i * 3600)) // Every hour
             let tempVariation = Double.random(in: -5...5)
             let randomIndex = Int.random(in: 0..<conditions.count)
+            
+            // Adjust icon for day/night cycle
+            let hour = Calendar.current.component(.hour, from: time)
+            var iconCode = conditions[randomIndex]
+            if hour < 6 || hour > 18 {
+                // Convert day icons to night icons
+                iconCode = iconCode.replacingOccurrences(of: "d", with: "n")
+            }
             
             forecast.append(HourlyWeather(
                 id: UUID(),
                 time: time,
                 temperature: baseTemp + tempVariation,
-                iconCode: conditions[randomIndex],
+                iconCode: iconCode,
                 description: descriptions[randomIndex]
             ))
         }

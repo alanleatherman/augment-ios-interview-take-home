@@ -20,6 +20,10 @@ protocol WeatherRepositoryProtocol: Sendable {
     func getDailyForecast(for city: City) async throws -> [DailyWeather]
     func getExtendedForecast(for city: City) async throws -> [DailyWeather]
     
+    // One Call API methods (comprehensive weather data)
+    func getCompleteWeatherData(for city: City) async throws -> (weather: Weather, hourly: [HourlyWeather], daily: [DailyWeather])
+    func getCompleteWeatherData(latitude: Double, longitude: Double) async throws -> (weather: Weather, hourly: [HourlyWeather], daily: [DailyWeather])
+    
     // Caching
     @MainActor func getCachedWeather(for cityId: UUID) -> Weather?
     func getCachedHourlyForecast(for cityId: UUID) -> [HourlyWeather]?
@@ -57,6 +61,14 @@ protocol WeatherInteractorProtocol {
     // Forecast methods
     func loadHourlyForecast(for city: City) async
     func loadDailyForecast(for city: City) async
+    
+    // Selected city management
+    func updateSelectedCityIndex(_ index: Int)
+    
+    // Home city management
+    func markCurrentCityAsHome()
+    func clearHomeCity()
+    func isHomeCity(_ city: City) -> Bool
 }
 
 protocol LocationInteractorProtocol {
