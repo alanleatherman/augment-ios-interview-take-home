@@ -9,38 +9,93 @@ import Foundation
 import SwiftData
 
 final class WeatherWebRepository: WeatherRepositoryProtocol, @unchecked Sendable {
-    private let apiKey: String
-    private let session: URLSession
+    private let networkService: NetworkService
     private var modelContext: ModelContext?
+    private let appSettings: AppSettings
     
-    init(modelContext: ModelContext? = nil, apiKey: String = "YOUR_API_KEY_HERE") {
+    init(modelContext: ModelContext? = nil, networkService: NetworkService = NetworkService.shared, appSettings: AppSettings) {
         self.modelContext = modelContext
-        self.apiKey = apiKey
-        self.session = URLSession.shared
+        self.networkService = networkService
+        self.appSettings = appSettings
     }
     
     // MARK: - Current Weather
     
     func getCurrentWeather(for city: City) async throws -> Weather {
-        return try await getCurrentWeather(latitude: city.latitude, longitude: city.longitude)
+        var components = URLComponents(string: APIConfiguration.URLs.currentWeather)!
+        components.queryItems = [
+            URLQueryItem(name: "lat", value: String(city.latitude)),
+            URLQueryItem(name: "lon", value: String(city.longitude)),
+            URLQueryItem(name: "appid", value: APIConfiguration.shared.openWeatherMapAPIKey),
+            URLQueryItem(name: "units", value: appSettings.temperatureUnit.rawValue)
+        ]
+        
+        guard let url = components.url else {
+            throw WeatherError.malformedResponse
+        }
+        
+        let response = try await networkService.fetch(OpenWeatherMapCurrentResponse.self, from: url)
+        return response.toWeather(for: city.id)
     }
     
     func getCurrentWeather(latitude: Double, longitude: Double) async throws -> Weather {
-        // TODO: Implement actual API call to OpenWeatherMap
-        // For now, return sample data
-        return Weather.sample
+        var components = URLComponents(string: APIConfiguration.URLs.currentWeather)!
+        components.queryItems = [
+            URLQueryItem(name: "lat", value: String(latitude)),
+            URLQueryItem(name: "lon", value: String(longitude)),
+            URLQueryItem(name: "appid", value: APIConfiguration.shared.openWeatherMapAPIKey),
+            URLQueryItem(name: "units", value: appSettings.temperatureUnit.rawValue)
+        ]
+        
+        guard let url = components.url else {
+            throw WeatherError.malformedResponse
+        }
+        
+        let response = try await networkService.fetch(OpenWeatherMapCurrentResponse.self, from: url)
+        
+        // Create a temporary city ID for coordinate-based requests
+        let cityId = UUID()
+        return response.toWeather(for: cityId)
     }
     
     // MARK: - Forecast Data
     
     func getHourlyForecast(for city: City) async throws -> [HourlyWeather] {
-        // TODO: Implement API call to OpenWeatherMap 5-day forecast endpoint
-        return HourlyWeather.samples
+        var components = URLComponents(string: APIConfiguration.URLs.forecast)!
+        components.queryItems = [
+            URLQueryItem(name: "lat", value: String(city.latitude)),
+            URLQueryItem(name: "lon", value: String(city.longitude)),
+            URLQueryItem(name: "appid", value: APIConfiguration.shared.openWeatherMapAPIKey),
+            URLQueryItem(name: "units", value: appSettings.temperatureUnit.rawValue)
+        ]
+        
+        guard let url = components.url else {
+            throw WeatherError.malformedResponse
+        }
+        
+        let response = try await networkService.fetch(OpenWeatherMapForecastResponse.self, from: url)
+        
+        // Convert to hourly weather and take first 24 hours
+        return response.list.prefix(8).map { $0.toHourlyWeather() }
     }
     
     func getDailyForecast(for city: City) async throws -> [DailyWeather] {
-        // TODO: Implement API call to OpenWeatherMap 16-day forecast endpoint
-        return DailyWeather.samples
+        var components = URLComponents(string: APIConfiguration.URLs.forecast)!
+        components.queryItems = [
+            URLQueryItem(name: "lat", value: String(city.latitude)),
+            URLQueryItem(name: "lon", value: String(city.longitude)),
+            URLQueryItem(name: "appid", value: APIConfiguration.shared.openWeatherMapAPIKey),
+            URLQueryItem(name: "units", value: appSettings.temperatureUnit.rawValue)
+        ]
+        
+        guard let url = components.url else {
+            throw WeatherError.malformedResponse
+        }
+        
+        let response = try await networkService.fetch(OpenWeatherMapForecastResponse.self, from: url)
+        
+        // Convert to daily weather forecast
+        return response.list.toDailyWeather()
     }
     
     func getExtendedForecast(for city: City) async throws -> [DailyWeather] {

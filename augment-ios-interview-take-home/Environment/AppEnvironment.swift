@@ -15,71 +15,73 @@ struct AppEnvironment {
     
     enum Option: String {
         case preview
-        case local
+        case mock
+        case debug
         case production
     }
     
     static let current: Option = {
         #if PREVIEW
-        return .preview
+        return .preview        // SwiftUI Previews → Mock Data
+        #elseif MOCK_DATA
+        return .mock          // Mock Scheme → Mock Data  
         #elseif DEBUG
-        return .local
+        return .debug         // Debug Scheme → Real API
         #else
-        return .production
+        return .production    // Release Scheme → Real API
         #endif
     }()
 }
 
 extension AppEnvironment {
-    @MainActor
     static func bootstrap(_ optionOverride: AppEnvironment.Option? = nil, modelContext: ModelContext? = nil) -> AppEnvironment {
         let option = optionOverride ?? AppEnvironment.current
+        print("🌤️ Weather App Environment: \(option.rawValue.uppercased())")
         
         switch option {
-        case .preview:
-            return createPreviewEnvironment()
-        case .local:
-            return createLocalEnvironment(modelContext: modelContext)
+        case .preview, .mock:
+            print("📱 Using Mock Data Repository")
+            return createMockEnvironment()
+        case .debug:
+            print("🌐 Using Real API Repository (Debug)")
+            return createDebugEnvironment(modelContext: modelContext)
         case .production:
-            return createWebEnvironment(option: option, modelContext: modelContext)
+            print("🚀 Using Real API Repository (Production)")
+            return createProductionEnvironment(modelContext: modelContext)
         }
     }
     
-    @MainActor
-    private static func createPreviewEnvironment() -> AppEnvironment {
+    private static func createMockEnvironment() -> AppEnvironment {
         let appState = AppState()
-        let interactors = createPreviewInteractors(appState: appState)
+        let interactors = createMockInteractors(appState: appState)
         let container = AppContainer(appState: appState, interactors: interactors)
         
-        return AppEnvironment(option: .preview, appContainer: container)
+        return AppEnvironment(option: .mock, appContainer: container)
     }
     
-    @MainActor
-    private static func createLocalEnvironment(modelContext: ModelContext? = nil) -> AppEnvironment {
+    private static func createDebugEnvironment(modelContext: ModelContext? = nil) -> AppEnvironment {
         let appState = AppState()
-        let interactors = createWebInteractors(appState: appState, modelContext: modelContext)
+        let interactors = createRealAPIInteractors(appState: appState, modelContext: modelContext)
         let container = AppContainer(appState: appState, interactors: interactors)
         
-        return AppEnvironment(option: .local, appContainer: container)
+        return AppEnvironment(option: .debug, appContainer: container)
     }
     
-    @MainActor
-    private static func createWebEnvironment(option: AppEnvironment.Option, modelContext: ModelContext? = nil) -> AppEnvironment {
+    private static func createProductionEnvironment(modelContext: ModelContext? = nil) -> AppEnvironment {
         let appState = AppState()
-        let interactors = createWebInteractors(appState: appState, modelContext: modelContext)
+        let interactors = createRealAPIInteractors(appState: appState, modelContext: modelContext)
         let container = AppContainer(appState: appState, interactors: interactors)
         
-        return AppEnvironment(option: option, appContainer: container)
+        return AppEnvironment(option: .production, appContainer: container)
     }
     
-    @MainActor
-    private static func createPreviewInteractors(appState: AppState) -> AppContainer.Interactors {
+    private static func createMockInteractors(appState: AppState) -> AppContainer.Interactors {
         let weatherInteractor = WeatherInteractor(
-            repository: WeatherPreviewRepository(),
+            repository: WeatherPreviewRepository(), // Mock data
             appState: appState
         )
         let locationInteractor = LocationInteractor(
-            repository: LocationPreviewRepository(),
+            repository: LocationPreviewRepository(), // Mock location
             appState: appState
         )
         
@@ -89,14 +91,13 @@ extension AppEnvironment {
         )
     }
     
-    @MainActor
-    private static func createWebInteractors(appState: AppState, modelContext: ModelContext? = nil) -> AppContainer.Interactors {
+    private static func createRealAPIInteractors(appState: AppState, modelContext: ModelContext? = nil) -> AppContainer.Interactors {
         let weatherInteractor = WeatherInteractor(
-            repository: WeatherWebRepository(modelContext: modelContext),
+            repository: WeatherWebRepository(modelContext: modelContext, appSettings: appState.appSettings), // Real API
             appState: appState
         )
         let locationInteractor = LocationInteractor(
-            repository: LocationWebRepository(),
+            repository: LocationWebRepository(), // Real location services
             appState: appState
         )
         

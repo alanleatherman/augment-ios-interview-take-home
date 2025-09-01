@@ -31,20 +31,26 @@ final class WeatherInteractor: WeatherInteractorProtocol {
         do {
             // Load cities from persistence
             let cities = try await repository.getAllCities()
+            print("📍 Loaded \(cities.count) cities from persistence")
             appState.weatherState.cities = cities
             
             // If no cities exist, add predefined ones
             if cities.isEmpty {
+                print("📍 No cities found, adding default cities...")
                 for city in City.predefinedCities.prefix(3) {
+                    print("📍 Adding city: \(city.name)")
                     await addCity(city)
                 }
+                print("📍 Finished adding default cities. Total cities: \(appState.weatherState.cities.count)")
             } else {
+                print("📍 Found existing cities, loading weather data...")
                 // Load weather for existing cities
                 await refreshAllWeather()
             }
             
             appState.weatherState.lastRefresh = Date()
         } catch {
+            print("❌ Error in loadInitialData: \(error)")
             let weatherError = error as? WeatherError ?? .unknownError(error)
             self.error = weatherError
             appState.weatherState.error = weatherError
@@ -56,16 +62,20 @@ final class WeatherInteractor: WeatherInteractorProtocol {
     
     func addCity(_ city: City) async {
         do {
+            print("📍 Adding city to repository: \(city.name)")
             // Add to repository
             try await repository.addCity(city)
             
+            print("📍 Adding city to app state: \(city.name)")
             // Add to app state
             appState.weatherState.cities.append(city)
             
+            print("📍 Loading weather for city: \(city.name)")
             // Load weather for the new city
             await refreshWeather(for: city)
             
         } catch {
+            print("❌ Error adding city \(city.name): \(error)")
             let weatherError = error as? WeatherError ?? .unknownError(error)
             self.error = weatherError
             appState.weatherState.error = weatherError

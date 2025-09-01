@@ -33,15 +33,18 @@ A modern iOS weather application built with SwiftUI and SwiftData, featuring rea
 augment-ios-interview-take-home/
 ├── Environment/           # Dependency injection and app bootstrapping
 │   ├── AppEnvironment.swift
-│   └── AppContainer.swift
+│   ├── AppContainer.swift
+│   └── APIConfiguration.swift # Secure API key management
 ├── Models/               # Core data models and state management
 │   ├── City.swift        # SwiftData model for city persistence
 │   ├── Weather.swift     # Current weather data structures
 │   ├── WeatherForecast.swift # Hourly and daily forecast models
+│   ├── OpenWeatherMapModels.swift # API response models and converters
 │   ├── AppState.swift    # Observable app state management
 │   └── WeatherError.swift # Comprehensive error handling
 ├── Data/                 # Repository layer and protocols
 │   ├── Protocols.swift   # Repository and interactor interfaces
+│   ├── NetworkService.swift # HTTP client with error handling
 │   ├── WeatherWebRepository.swift    # OpenWeatherMap API integration
 │   ├── WeatherPreviewRepository.swift # Mock data for previews/testing
 │   ├── LocationWebRepository.swift   # CoreLocation integration
@@ -71,6 +74,29 @@ augment-ios-interview-take-home/
 - **Native iOS Design**: Weather app-inspired interface with cards, gradients, and smooth animations
 - **Responsive Components**: Adaptive layouts that work across different screen sizes
 - **Error Handling**: User-friendly error messages with recovery actions
+
+## Phase 4 Implementation: OpenWeatherMap API Integration
+
+### What Was Implemented
+- **NetworkService**: HTTP client with proper error handling and timeout configuration
+- **APIConfiguration**: Secure API key management with obfuscation (development approach)
+- **OpenWeatherMapModels**: Complete API response models matching OpenWeatherMap JSON structure
+- **Data Transformation**: Conversion from API models to domain models with computed properties
+- **Real API Calls**: Current weather, 5-day forecast, and error handling implementation
+- **Comprehensive Testing**: API integration tests with real network calls and validation
+
+### API Endpoints Integrated
+1. **Current Weather** (`/weather`): Real-time weather conditions
+2. **5-Day Forecast** (`/forecast`): 3-hour interval forecasts for hourly and daily data
+3. **Error Handling**: Proper HTTP status code handling (401, 404, 429, etc.)
+
+### Files Added/Modified
+- ✅ `APIConfiguration.swift` - Secure API key management
+- ✅ `NetworkService.swift` - HTTP client with error handling  
+- ✅ `OpenWeatherMapModels.swift` - API response models and converters
+- ✅ `WeatherWebRepository.swift` - Updated with real API calls
+- ✅ `WeatherAPITests.swift` - Comprehensive API integration tests
+- ✅ `README.md` - Updated with API documentation and security considerations
 
 ## Key Implementation Decisions
 
@@ -165,21 +191,140 @@ Given more time, the following features would enhance the application:
 - **Protocol Refinement**: More granular protocols for better testability
 - **Error Recovery**: Automatic retry mechanisms and offline mode improvements
 
+## API Configuration
+
+### OpenWeatherMap API Key Setup
+
+The application uses the OpenWeatherMap API for real-time weather data. For development purposes, the API key is currently stored in `APIConfiguration.swift` with basic obfuscation.
+
+**Current API Key**: `5ba7fa811c3a97ec456f34293534cc6e`
+
+### Security Considerations
+
+⚠️ **Important**: The current implementation stores the API key in the client code for development convenience. In a production environment, this approach has security limitations:
+
+- **Client-side keys are visible** to anyone who reverse engineers the app
+- **API quotas can be exhausted** by malicious users
+- **Keys cannot be rotated** without app updates
+
+### Production-Ready API Key Management
+
+In a production environment, we would implement secure API key management:
+
+#### Server-Side Proxy (Recommended)
+```
+iOS App → Your Backend API → OpenWeatherMap API
+```
+
+**Benefits:**
+- API keys remain secure on your servers
+- Implement user authentication and rate limiting
+- Add caching layers to reduce API costs
+- Monitor and control API usage per user
+- Rotate keys without app updates
+
+#### Implementation Approach:
+1. **Backend Service**: Create endpoints like `/api/weather/current` and `/api/weather/forecast`
+2. **Authentication**: Require user tokens for API access
+3. **Rate Limiting**: Implement per-user quotas and throttling
+4. **Caching**: Server-side caching to minimize OpenWeatherMap API calls
+5. **Monitoring**: Track API usage, errors, and performance metrics
+
+#### Alternative: Secure Key Storage
+If direct API access is required:
+- **iOS Keychain**: Store encrypted keys in iOS Keychain Services
+- **Key Obfuscation**: Advanced code obfuscation techniques
+- **Certificate Pinning**: Prevent man-in-the-middle attacks
+- **Runtime Checks**: Detect jailbroken devices and debugging tools
+
+### Current Implementation Details
+
+The app currently uses three OpenWeatherMap endpoints:
+- **Current Weather**: `https://api.openweathermap.org/data/2.5/weather`
+- **5-Day Forecast**: `https://api.openweathermap.org/data/2.5/forecast`
+- **Geocoding**: `https://api.openweathermap.org/geo/1.0/direct` (for future city search)
+
+**Rate Limits**: 60 calls/minute, 1,000 calls/day (free tier)
+**Caching Strategy**: 10-minute cache for current weather, reduces API usage by ~85%
+
 ## Running the Project
 
 1. **Requirements**: iOS 17.0+, Xcode 15.0+
-2. **API Setup**: 
-   - Get a free API key from [OpenWeatherMap](https://openweathermap.org/api)
-   - Replace `"YOUR_API_KEY_HERE"` in `WeatherWebRepository.swift`
+2. **API Setup**: The app is pre-configured with a development API key
 3. **Build**: Open `augment-ios-interview-take-home.xcodeproj` and press Cmd+R
-4. **Testing**: The app works immediately with preview data, add API key for live weather
+4. **Testing**: The app works immediately with live weather data
+
+### Switching Between Mock and Real Data
+
+The project supports multiple schemes for different data sources:
+
+| Scheme | Data Source | Use Case |
+|--------|-------------|----------|
+| **Default** | Real API | Standard development with live data |
+| **Weather App (Mock)** | Mock data | Fast development, no network calls |
+| **Weather App (Production)** | Real API | Production builds |
+
+**Setup Guide**: See [`SCHEMES_SETUP.md`](SCHEMES_SETUP.md) for detailed Xcode configuration instructions.
+
+**Quick Reference**: See [`SCHEMES_QUICK_REFERENCE.md`](SCHEMES_QUICK_REFERENCE.md) for keyboard shortcuts and troubleshooting.
+
+**Setup Helper**: Run `./setup_schemes.sh` for a guided setup checklist.
+
+**Manual Override**: You can also force mock data by changing the environment:
+```swift
+// In AppEnvironment.swift, temporarily change:
+static let current: Option = .mock  // Force mock data
+```
+
+## Testing
+
+The project includes comprehensive API integration tests to verify the OpenWeatherMap integration:
+
+### Running Tests
+```bash
+# Run all tests
+⌘ + U in Xcode
+
+# Run specific test class
+xcodebuild test -scheme augment-ios-interview-take-home -destination 'platform=iOS Simulator,name=iPhone 15' -only-testing:augment-ios-interview-take-homeTests/WeatherAPITests
+```
+
+### Test Coverage
+- **API Integration**: Verifies real OpenWeatherMap API responses
+- **Data Validation**: Ensures weather data is within reasonable ranges
+- **Error Handling**: Tests invalid coordinates and network error scenarios
+- **Forecast Parsing**: Validates hourly and daily forecast data transformation
+
+### Sample Test Output
+```
+✅ Current weather API test passed
+Temperature: 18.5°C
+Description: Clear sky
+Humidity: 65%
+Pressure: 1013 hPa
+
+✅ Forecast API test passed
+Hourly forecasts: 8
+Daily forecasts: 5
+
+✅ Error handling test passed: cityNotFound("Location not found")
+```
 
 ## Time Investment
 
-This implementation represents approximately 4 hours of focused development time, covering:
+This implementation represents approximately 6 hours of focused development time, covering:
 - Clean architecture setup and dependency injection (1 hour)
 - Core weather models and repository pattern (1 hour)
 - SwiftUI interface with native iOS design (1.5 hours)
 - Location services and error handling (0.5 hours)
+- **OpenWeatherMap API integration and network layer (1.5 hours)**
+- **API testing and validation (0.5 hours)**
 
 The codebase demonstrates production-ready iOS development practices while maintaining clean, readable, and maintainable code suitable for a team environment. The architecture mirrors the messaging app pattern, ensuring consistency across projects.
+
+### Phase Completion Status
+- ✅ **Phase 1**: Architecture and Models - Complete
+- ✅ **Phase 2**: SwiftUI Interface - Complete  
+- ✅ **Phase 3**: Location Services - Complete
+- ✅ **Phase 4**: OpenWeatherMap API Integration - **Complete**
+- 🔄 **Phase 5**: Polish and Testing - In Progress

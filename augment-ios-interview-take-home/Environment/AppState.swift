@@ -59,7 +59,7 @@ class LocationState {
 
 @Observable
 class AppSettings {
-    var temperatureUnit: TemperatureUnit = .celsius
+    var temperatureUnit: TemperatureUnit = .fahrenheit // Default to Fahrenheit
     var refreshInterval: TimeInterval = 600 // 10 minutes
     var enableAutoRefresh = true
     var enableLocationServices = true
