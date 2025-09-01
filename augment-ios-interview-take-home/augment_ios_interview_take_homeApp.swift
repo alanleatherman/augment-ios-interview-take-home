@@ -12,7 +12,8 @@ import SwiftData
 struct augment_ios_interview_take_homeApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            Item.self,
+            City.self,
+            CachedWeather.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
@@ -26,6 +27,7 @@ struct augment_ios_interview_take_homeApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .inject(AppEnvironment.bootstrap(modelContext: sharedModelContainer.mainContext).appContainer)
         }
         .modelContainer(sharedModelContainer)
     }
