@@ -26,11 +26,11 @@ protocol WeatherRepositoryProtocol: Sendable {
     
     // Caching
     @MainActor func getCachedWeather(for cityId: UUID) -> Weather?
-    func getCachedHourlyForecast(for cityId: UUID) -> [HourlyWeather]?
-    func getCachedDailyForecast(for cityId: UUID) -> [DailyWeather]?
+    @MainActor func getCachedHourlyForecast(for cityId: UUID) -> [HourlyWeather]?
+    @MainActor func getCachedDailyForecast(for cityId: UUID) -> [DailyWeather]?
     @MainActor func cacheWeather(_ weather: Weather)
-    func cacheHourlyForecast(_ forecast: [HourlyWeather], for cityId: UUID)
-    func cacheDailyForecast(_ forecast: [DailyWeather], for cityId: UUID)
+    @MainActor func cacheHourlyForecast(_ forecast: [HourlyWeather], for cityId: UUID)
+    @MainActor func cacheDailyForecast(_ forecast: [DailyWeather], for cityId: UUID)
     @MainActor func clearCache()
     
     // City management
@@ -70,7 +70,7 @@ protocol WeatherInteractorProtocol {
     @MainActor func clearHomeCity()
     @MainActor func isHomeCity(_ city: City) -> Bool
     
-    /// Location monitoring integration
+    // Location monitoring integration
     @MainActor func handleLocationUpdate(for city: City) async
 }
 

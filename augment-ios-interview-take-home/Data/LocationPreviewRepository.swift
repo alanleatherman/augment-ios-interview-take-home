@@ -13,7 +13,7 @@ final class LocationPreviewRepository: LocationRepositoryProtocol, @unchecked Se
     
     func requestLocationPermission() async {
         // Simulate permission request
-        try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+        try? await Task.sleep(nanoseconds: 500_000_000)
         authorizationStatus = .authorizedWhenInUse
     }
     
@@ -23,7 +23,7 @@ final class LocationPreviewRepository: LocationRepositoryProtocol, @unchecked Se
         }
         
         // Simulate location fetch delay
-        try await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+        try await Task.sleep(nanoseconds: 1_000_000_000)
         
         // Return San Francisco coordinates as sample
         return CLLocation(latitude: 37.7749, longitude: -122.4194)

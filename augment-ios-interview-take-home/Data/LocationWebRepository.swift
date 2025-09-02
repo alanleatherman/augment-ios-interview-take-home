@@ -12,6 +12,7 @@ final class LocationWebRepository: NSObject, LocationRepositoryProtocol, @unchec
     private let locationManager = CLLocationManager()
     private var locationContinuation: CheckedContinuation<CLLocation, Error>?
     private var locationUpdateHandler: ((CLLocation) -> Void)?
+    private var permissionContinuation: CheckedContinuation<CLAuthorizationStatus, Never>?
     
     override init() {
         super.init()
@@ -20,21 +21,16 @@ final class LocationWebRepository: NSObject, LocationRepositoryProtocol, @unchec
         locationManager.distanceFilter = 100 // Only notify for significant location changes (100 meters)
     }
     
-    private var permissionContinuation: CheckedContinuation<CLAuthorizationStatus, Never>?
-    
     func requestLocationPermission() async {
         let currentStatus = locationManager.authorizationStatus
         
-        // If already authorized or denied, return immediately
         guard currentStatus == .notDetermined else {
             return
         }
         
-        // Wait for permission response
         let _ = await withCheckedContinuation { continuation in
             self.permissionContinuation = continuation
             
-            // Add timeout for permission request
             DispatchQueue.main.asyncAfter(deadline: .now() + 30) {
                 if self.permissionContinuation != nil {
                     self.permissionContinuation?.resume(returning: self.locationManager.authorizationStatus)
@@ -111,7 +107,6 @@ extension LocationWebRepository: CLLocationManagerDelegate {
     }
     
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-        // Resume permission continuation if waiting
         if let continuation = permissionContinuation {
             continuation.resume(returning: manager.authorizationStatus)
             permissionContinuation = nil

@@ -203,11 +203,13 @@ final class WeatherWebRepository: WeatherRepositoryProtocol, @unchecked Sendable
         }
     }
     
+    @MainActor
     func getCachedHourlyForecast(for cityId: UUID) -> [HourlyWeather]? {
         // For now, return nil - we can implement this later if needed
         return nil
     }
     
+    @MainActor
     func getCachedDailyForecast(for cityId: UUID) -> [DailyWeather]? {
         // For now, return nil - we can implement this later if needed
         return nil
@@ -241,10 +243,12 @@ final class WeatherWebRepository: WeatherRepositoryProtocol, @unchecked Sendable
         }
     }
     
+    @MainActor
     func cacheHourlyForecast(_ forecast: [HourlyWeather], for cityId: UUID) {
         // For now, do nothing - we can implement this later if needed
     }
     
+    @MainActor
     func cacheDailyForecast(_ forecast: [DailyWeather], for cityId: UUID) {
         // For now, do nothing - we can implement this later if needed
     }
