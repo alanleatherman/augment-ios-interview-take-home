@@ -210,7 +210,15 @@ struct AppContainer {
     func handleAppDidBecomeActive() async {
         // Check if location permission status has changed when app becomes active
         // This is useful when user goes to Settings and enables location permission
+        let previousStatus = appState.locationState.authorizationStatus
         await interactors.locationInteractor.checkPermissionStatusAndRetry()
+        let currentStatus = appState.locationState.authorizationStatus
+        
+        // If permission was just granted, add current location city
+        if (previousStatus == .denied || previousStatus == .notDetermined) && 
+           (currentStatus == .authorizedWhenInUse || currentStatus == .authorizedAlways) {
+            await addCurrentLocationCity()
+        }
         
         // Start location monitoring if we have a current location city
         startLocationMonitoringIfNeeded()

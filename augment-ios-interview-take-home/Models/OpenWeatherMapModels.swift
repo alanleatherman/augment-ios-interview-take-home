@@ -378,6 +378,6 @@ extension Array where Element == ForecastItem {
                 description: primaryWeather.description.capitalized,
                 precipitationChance: avgPrecipitation
             )
-        }.sorted { $0.date < $1.date }
+        }.sorted { $0.date < $1.date }.prefix(5).map { $0 }
     }
 }

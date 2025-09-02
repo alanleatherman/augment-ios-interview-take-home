@@ -15,18 +15,34 @@ class MockLocationRepository: LocationRepositoryProtocol, @unchecked Sendable {
     var errorToThrow: LocationError = .permissionDenied
     var permissionRequestCount = 0
     
+    // Additional properties needed by tests
+    var authorizationStatus: CLAuthorizationStatus {
+        get { mockAuthorizationStatus }
+        set { mockAuthorizationStatus = newValue }
+    }
+    
+    var getCurrentLocationCalled = false
+    var requestPermissionDelay: TimeInterval = 0
+    var getCurrentLocationDelay: TimeInterval = 0
+    
     func requestLocationPermission() async {
         // Simulate permission request
         permissionRequestCount += 1
         
-        // Simulate system dialog delay
-        try? await Task.sleep(for: .milliseconds(50))
+        // Simulate system dialog delay with configurable delay
+        if requestPermissionDelay > 0 {
+            try? await Task.sleep(for: .seconds(requestPermissionDelay))
+        } else {
+            try? await Task.sleep(for: .milliseconds(50))
+        }
         
         // In real implementation, this would trigger the system dialog
         // For testing, we can simulate the user's response by changing the status
     }
     
     func getCurrentLocation() async throws -> CLLocation {
+        getCurrentLocationCalled = true
+        
         if shouldThrowError {
             throw errorToThrow
         }
@@ -39,8 +55,12 @@ class MockLocationRepository: LocationRepositoryProtocol, @unchecked Sendable {
             throw LocationError.locationUnavailable(NSError(domain: "MockError", code: 1, userInfo: [NSLocalizedDescriptionKey: "No mock location set"]))
         }
         
-        // Simulate location fetch delay
-        try await Task.sleep(for: .milliseconds(100))
+        // Simulate location fetch delay with configurable delay
+        if getCurrentLocationDelay > 0 {
+            try await Task.sleep(for: .seconds(getCurrentLocationDelay))
+        } else {
+            try await Task.sleep(for: .milliseconds(100))
+        }
         
         return location
     }
@@ -56,6 +76,9 @@ class MockLocationRepository: LocationRepositoryProtocol, @unchecked Sendable {
         shouldThrowError = false
         errorToThrow = .permissionDenied
         permissionRequestCount = 0
+        getCurrentLocationCalled = false
+        requestPermissionDelay = 0
+        getCurrentLocationDelay = 0
     }
     
     func simulateUserGrantingPermission() {

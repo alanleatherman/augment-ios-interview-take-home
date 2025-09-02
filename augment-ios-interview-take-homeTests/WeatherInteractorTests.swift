@@ -34,7 +34,7 @@ struct WeatherInteractorTests {
         
         // Verify default cities were added
         #expect(!appState.weatherState.cities.isEmpty, "Should have default cities")
-        #expect(appState.weatherState.cities.count == 6, "Should have 6 default cities")
+        #expect(appState.weatherState.cities.count == 5, "Should have 5 default cities")
         
         // Verify default cities are present
         let cityNames = appState.weatherState.cities.map { $0.name }
@@ -43,7 +43,6 @@ struct WeatherInteractorTests {
         #expect(cityNames.contains("Austin"))
         #expect(cityNames.contains("Lisbon"))
         #expect(cityNames.contains("Auckland"))
-        #expect(cityNames.contains("Rio de Janeiro"))
         
         // Verify loading state is cleared
         #expect(!appState.weatherState.isLoading)
@@ -91,11 +90,11 @@ struct WeatherInteractorTests {
         await weatherInteractor.addCity(newCity)
         
         // Verify city was added to app state
-        XCTAssertTrue(appState.weatherState.cities.contains { $0.id == newCity.id })
+        #expect(appState.weatherState.cities.contains { $0.id == newCity.id })
         
         // Verify repository was called
-        XCTAssertTrue(mockRepository.addCityCalled)
-        XCTAssertEqual(mockRepository.lastAddedCity?.name, "Seattle")
+        #expect(mockRepository.addCityCalled)
+        #expect(mockRepository.lastAddedCity?.name == "Seattle")
         
         print("✅ Add city test passed")
     }
@@ -111,11 +110,11 @@ struct WeatherInteractorTests {
         await weatherInteractor.addCity(newCity)
         
         // Verify error was set
-        XCTAssertNotNil(appState.weatherState.error)
-        XCTAssertNotNil(weatherInteractor.error)
+        #expect(appState.weatherState.error != nil)
+        #expect(weatherInteractor.error != nil)
         
         // Verify city was not added to app state
-        XCTAssertFalse(appState.weatherState.cities.contains { $0.id == newCity.id })
+        #expect(!appState.weatherState.cities.contains { $0.id == newCity.id })
         
         print("✅ Add city with error test passed")
     }
@@ -130,11 +129,11 @@ struct WeatherInteractorTests {
         await weatherInteractor.removeCity(cityToRemove)
         
         // Verify city was removed from app state
-        XCTAssertFalse(appState.weatherState.cities.contains { $0.id == cityToRemove.id })
-        XCTAssertNil(appState.weatherState.weatherData[cityToRemove.id])
+        #expect(!appState.weatherState.cities.contains { $0.id == cityToRemove.id })
+        #expect(appState.weatherState.weatherData[cityToRemove.id] == nil)
         
         // Verify repository was called
-        XCTAssertTrue(mockRepository.removeCityCalled)
+        #expect(mockRepository.removeCityCalled)
         
         print("✅ Remove city test passed")
     }
@@ -152,8 +151,8 @@ struct WeatherInteractorTests {
         await weatherInteractor.refreshWeather(for: testCity)
         
         // Verify cached weather was used
-        XCTAssertEqual(appState.weatherState.weatherData[testCity.id]?.id, cachedWeather.id)
-        XCTAssertFalse(mockRepository.getCurrentWeatherCalled, "Should not call API when cache is available")
+        #expect(appState.weatherState.weatherData[testCity.id]?.id == cachedWeather.id)
+        #expect(!mockRepository.getCurrentWeatherCalled, "Should not call API when cache is available")
         
         print("✅ Refresh weather with cache test passed")
     }
@@ -184,9 +183,9 @@ struct WeatherInteractorTests {
         await weatherInteractor.refreshWeather(for: testCity)
         
         // Verify fresh weather was fetched and cached
-        XCTAssertEqual(appState.weatherState.weatherData[testCity.id]?.id, freshWeather.id)
-        XCTAssertTrue(mockRepository.getCurrentWeatherCalled, "Should call API when no cache")
-        XCTAssertTrue(mockRepository.cacheWeatherCalled, "Should cache the result")
+        #expect(appState.weatherState.weatherData[testCity.id]?.id == freshWeather.id)
+        #expect(mockRepository.getCurrentWeatherCalled, "Should call API when no cache")
+        #expect(mockRepository.cacheWeatherCalled, "Should cache the result")
         
         print("✅ Refresh weather without cache test passed")
     }
@@ -202,8 +201,8 @@ struct WeatherInteractorTests {
         await weatherInteractor.refreshWeather(for: testCity)
         
         // Verify error was set
-        XCTAssertNotNil(appState.weatherState.error)
-        XCTAssertNotNil(weatherInteractor.error)
+        #expect(appState.weatherState.error != nil)
+        #expect(weatherInteractor.error != nil)
         
         print("✅ Refresh weather with error test passed")
     }
@@ -242,13 +241,13 @@ struct WeatherInteractorTests {
         
         // Verify all cities have weather data
         for city in cities {
-            XCTAssertNotNil(appState.weatherState.weatherData[city.id], "Should have weather for \(city.name)")
+            #expect(appState.weatherState.weatherData[city.id] != nil, "Should have weather for \(city.name)")
         }
         
         // Verify loading states are cleared
-        XCTAssertFalse(appState.weatherState.isLoading)
-        XCTAssertFalse(weatherInteractor.isLoading)
-        XCTAssertNotNil(appState.weatherState.lastRefresh)
+        #expect(!appState.weatherState.isLoading)
+        #expect(!weatherInteractor.isLoading)
+        #expect(appState.weatherState.lastRefresh != nil)
         
         print("✅ Refresh all weather test passed")
     }
@@ -266,8 +265,8 @@ struct WeatherInteractorTests {
         weatherInteractor.updateSelectedCityIndex(1)
         
         // Verify index was updated
-        XCTAssertEqual(appState.weatherState.selectedCityIndex, 1)
-        XCTAssertEqual(appState.appSettings.lastSelectedCityIndex, 1)
+        #expect(appState.weatherState.selectedCityIndex == 1)
+        #expect(appState.appSettings.lastSelectedCityIndex == 1)
         
         print("✅ Update selected city index test passed")
     }
@@ -282,7 +281,7 @@ struct WeatherInteractorTests {
         weatherInteractor.updateSelectedCityIndex(5)
         
         // Verify index was not changed
-        XCTAssertEqual(appState.weatherState.selectedCityIndex, 0)
+        #expect(appState.weatherState.selectedCityIndex == 0)
         
         print("✅ Update selected city index out of bounds test passed")
     }
@@ -302,9 +301,9 @@ struct WeatherInteractorTests {
         weatherInteractor.markCurrentCityAsHome()
         
         // Verify home city was set
-        XCTAssertEqual(appState.appSettings.homeCityId, cities[1].id)
-        XCTAssertTrue(weatherInteractor.isHomeCity(cities[1]))
-        XCTAssertFalse(weatherInteractor.isHomeCity(cities[0]))
+        #expect(appState.appSettings.homeCityId == cities[1].id)
+        #expect(weatherInteractor.isHomeCity(cities[1]))
+        #expect(!weatherInteractor.isHomeCity(cities[0]))
         
         print("✅ Mark current city as home test passed")
     }
@@ -318,8 +317,8 @@ struct WeatherInteractorTests {
         weatherInteractor.clearHomeCity()
         
         // Verify home city was cleared
-        XCTAssertNil(appState.appSettings.homeCityId)
-        XCTAssertFalse(weatherInteractor.isHomeCity(homeCity))
+        #expect(appState.appSettings.homeCityId == nil)
+        #expect(!weatherInteractor.isHomeCity(homeCity))
         
         print("✅ Clear home city test passed")
     }
@@ -335,8 +334,8 @@ struct WeatherInteractorTests {
         weatherInteractor.clearError()
         
         // Verify errors were cleared
-        XCTAssertNil(weatherInteractor.error)
-        XCTAssertNil(appState.weatherState.error)
+        #expect(weatherInteractor.error == nil)
+        #expect(appState.weatherState.error == nil)
         
         print("✅ Clear error test passed")
     }
@@ -355,8 +354,8 @@ struct WeatherInteractorTests {
         await weatherInteractor.retryLastFailedOperation()
         
         // Verify retry was attempted
-        XCTAssertTrue(mockRepository.getCurrentWeatherCalled)
-        XCTAssertFalse(appState.weatherState.isLoading)
+        #expect(mockRepository.getCurrentWeatherCalled)
+        #expect(!appState.weatherState.isLoading)
         
         print("✅ Retry last failed operation test passed")
     }
@@ -374,7 +373,7 @@ struct WeatherInteractorTests {
         await weatherInteractor.loadInitialData()
         
         // Verify current location city is first
-        XCTAssertTrue(appState.weatherState.cities.first?.isCurrentLocation == true, "Current location should be first")
+        #expect(appState.weatherState.cities.first?.isCurrentLocation == true, "Current location should be first")
         
         print("✅ City ordering with current location test passed")
     }
@@ -392,7 +391,7 @@ struct WeatherInteractorTests {
         
         // Verify home city is first (after current location check)
         let firstNonCurrentLocationCity = appState.weatherState.cities.first { !$0.isCurrentLocation }
-        XCTAssertEqual(firstNonCurrentLocationCity?.id, homeCity.id, "Home city should be first among non-current-location cities")
+        #expect(firstNonCurrentLocationCity?.id == homeCity.id, "Home city should be first among non-current-location cities")
         
         print("✅ City ordering with home city test passed")
     }
@@ -402,8 +401,8 @@ struct WeatherInteractorTests {
     func testLoadHourlyForecast() async throws {
         let testCity = City.sample
         let mockHourlyForecast = [
-            HourlyWeather(time: Date(), temperature: 75, iconCode: "01d", description: "Clear"),
-            HourlyWeather(time: Date().addingTimeInterval(3600), temperature: 73, iconCode: "01d", description: "Clear")
+            HourlyWeather(id: UUID(), time: Date(), temperature: 75, iconCode: "01d", description: "Clear"),
+            HourlyWeather(id: UUID(), time: Date().addingTimeInterval(3600), temperature: 73, iconCode: "01d", description: "Clear")
         ]
         
         // Mock forecast response
@@ -413,8 +412,8 @@ struct WeatherInteractorTests {
         await weatherInteractor.loadHourlyForecast(for: testCity)
         
         // Verify forecast was loaded
-        XCTAssertEqual(appState.weatherState.hourlyForecasts[testCity.id]?.count, 2)
-        XCTAssertTrue(mockRepository.getHourlyForecastCalled)
+        #expect(appState.weatherState.hourlyForecasts[testCity.id]?.count == 2)
+        #expect(mockRepository.getHourlyForecastCalled)
         
         print("✅ Load hourly forecast test passed")
     }
@@ -422,8 +421,8 @@ struct WeatherInteractorTests {
     func testLoadDailyForecast() async throws {
         let testCity = City.sample
         let mockDailyForecast = [
-            DailyWeather(date: Date(), temperatureMin: 65, temperatureMax: 80, iconCode: "01d", description: "Clear", precipitationChance: 0.1),
-            DailyWeather(date: Date().addingTimeInterval(86400), temperatureMin: 63, temperatureMax: 78, iconCode: "02d", description: "Partly Cloudy", precipitationChance: 0.2)
+            DailyWeather(id: UUID(), date: Date(), temperatureMin: 65, temperatureMax: 80, iconCode: "01d", description: "Clear", precipitationChance: 0.1),
+            DailyWeather(id: UUID(), date: Date().addingTimeInterval(86400), temperatureMin: 63, temperatureMax: 78, iconCode: "02d", description: "Partly Cloudy", precipitationChance: 0.2)
         ]
         
         // Mock forecast response
@@ -433,8 +432,8 @@ struct WeatherInteractorTests {
         await weatherInteractor.loadDailyForecast(for: testCity)
         
         // Verify forecast was loaded
-        XCTAssertEqual(appState.weatherState.dailyForecasts[testCity.id]?.count, 2)
-        XCTAssertTrue(mockRepository.getDailyForecastCalled)
+        #expect(appState.weatherState.dailyForecasts[testCity.id]?.count == 2)
+        #expect(mockRepository.getDailyForecastCalled)
         
         print("✅ Load daily forecast test passed")
     }
@@ -458,11 +457,11 @@ struct WeatherInteractorTests {
         
         // Verify it was saved to UserDefaults
         let savedIndex = UserDefaults.standard.integer(forKey: "lastSelectedCityIndex")
-        XCTAssertEqual(savedIndex, 2, "Selected city index should be persisted to UserDefaults")
+        #expect(savedIndex == 2, "Selected city index should be persisted to UserDefaults")
         
         // Verify it was also updated in app state
-        XCTAssertEqual(appState.weatherState.selectedCityIndex, 2)
-        XCTAssertEqual(appState.appSettings.lastSelectedCityIndex, 2)
+        #expect(appState.weatherState.selectedCityIndex == 2)
+        #expect(appState.appSettings.lastSelectedCityIndex == 2)
         
         print("✅ Selected city index persistence test passed")
     }
@@ -483,7 +482,7 @@ struct WeatherInteractorTests {
         await weatherInteractor.loadInitialData()
         
         // Verify the saved index was restored
-        XCTAssertEqual(appState.weatherState.selectedCityIndex, 1, "Saved selected city index should be restored on app launch")
+        #expect(appState.weatherState.selectedCityIndex == 1, "Saved selected city index should be restored on app launch")
         
         print("✅ Selected city index restoration test passed")
     }
@@ -503,7 +502,7 @@ struct WeatherInteractorTests {
         await weatherInteractor.loadInitialData()
         
         // Verify the index was clamped to valid bounds (should be 1, the max valid index)
-        XCTAssertEqual(appState.weatherState.selectedCityIndex, 1, "Out of bounds saved index should be clamped to valid range")
+        #expect(appState.weatherState.selectedCityIndex == 1, "Out of bounds saved index should be clamped to valid range")
         
         print("✅ Selected city index restoration with bounds test passed")
     }

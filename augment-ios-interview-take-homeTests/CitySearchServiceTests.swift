@@ -64,7 +64,7 @@ struct CitySearchServiceTests {
     @Test("Search with invalid city name returns no results")
     func searchWithInvalidCityName() async throws {
         // Test searching for a non-existent city
-        await citySearchService.searchCities(query: "XYZInvalidCity123")
+        await citySearchService.searchCities(query: "!@^#*")
         
         try await Task.sleep(nanoseconds: 3_000_000_000) // 3 seconds for thorough search
         

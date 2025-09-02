@@ -41,17 +41,6 @@
                ReferencedContainer = "container:augment-ios-interview-take-home.xcodeproj">
             </BuildableReference>
          </TestableReference>
-         <TestableReference
-            skipped = "YES"
-            parallelizable = "YES">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "FF1B96352E65235400769F71"
-               BuildableName = "augment-ios-interview-take-homeUITests.xctest"
-               BlueprintName = "augment-ios-interview-take-homeUITests"
-               ReferencedContainer = "container:augment-ios-interview-take-home.xcodeproj">
-            </BuildableReference>
-         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction

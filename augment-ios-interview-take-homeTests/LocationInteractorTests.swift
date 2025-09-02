@@ -45,7 +45,6 @@ struct LocationInteractorTests {
     func requestPermissionWhenAlreadyAuthorized() async throws {
         // Setup
         mockRepository.mockAuthorizationStatus = .authorizedWhenInUse
-        let initialCount = mockRepository.permissionRequestCount
         
         // Execute
         await locationInteractor.requestLocationPermission()
@@ -217,7 +216,7 @@ struct LocationInteractorTests {
         }
         
         // Check loading state
-        try await Task.sleep(nanoseconds: 50_000_000) // 0.05 seconds
+        try? await Task.sleep(nanoseconds: 50_000_000) // 0.05 seconds
         #expect(locationInteractor.isLoading, "Should be loading")
         #expect(appState.locationState.isRequestingLocation, "Should be requesting in app state")
         
@@ -241,7 +240,7 @@ struct LocationInteractorTests {
         }
         
         // Check loading state
-        try await Task.sleep(nanoseconds: 50_000_000) // 0.05 seconds
+        try? await Task.sleep(nanoseconds: 50_000_000) // 0.05 seconds
         #expect(locationInteractor.isLoading, "Should be loading")
         
         _ = try await task.value

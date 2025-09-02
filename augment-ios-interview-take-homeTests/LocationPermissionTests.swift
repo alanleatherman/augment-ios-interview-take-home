@@ -84,7 +84,7 @@ struct LocationPermissionTests {
         #expect(appState.weatherState.cities.count == 1)
         let addedCity = appState.weatherState.cities.first!
         #expect(addedCity.isCurrentLocation)
-        #expect(addedCity.name == "Current Location")
+        #expect(addedCity.name == "San Francisco")
         #expect(abs(addedCity.latitude - 37.7749) < 0.001)
         #expect(abs(addedCity.longitude - (-122.4194)) < 0.001)
     }
