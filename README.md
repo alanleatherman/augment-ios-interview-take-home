@@ -308,41 +308,81 @@ The application uses the OpenWeatherMap API for real-time weather data. For deve
 
 ### Security Considerations
 
-⚠️ **Important**: The current implementation stores the API key in the client code for development convenience. In a production environment, this approach has security limitations:
+⚠️ **Important**: The current implementation includes basic API key obfuscation for demonstration purposes. This is **NOT secure for production** and is only suitable for take-home projects and development.
 
-- **Client-side keys are visible** to anyone who reverse engineers the app
-- **API quotas can be exhausted** by malicious users
-- **Keys cannot be rotated** without app updates
+**Current Implementation Limitations:**
+- API key is embedded in client code (can be reverse engineered)
+- Obfuscation provides minimal security against determined attackers
+- API quotas can be exhausted by malicious users
+- Keys cannot be rotated without app updates
 
-### Production-Ready API Key Management
+### Production-Ready Security Approach
 
-In a production environment, we would implement secure API key management:
+In a production environment, **API keys should NEVER be embedded in client applications**. Instead, implement these security measures:
 
-#### Server-Side Proxy (Recommended)
+#### 1. Server-Side API Proxy (Strongly Recommended)
 ```
-iOS App → Your Backend API → OpenWeatherMap API
+iOS App → Your Authenticated Backend → OpenWeatherMap API
 ```
+
+**Implementation:**
+- Create backend endpoints: `/api/weather/current`, `/api/weather/forecast`
+- Require user authentication (JWT tokens, OAuth, etc.)
+- Store API keys securely on your servers only
+- Implement rate limiting per user/device
+- Add server-side caching to reduce API costs
+- Monitor and log all API usage
 
 **Benefits:**
-- API keys remain secure on your servers
-- Implement user authentication and rate limiting
-- Add caching layers to reduce API costs
-- Monitor and control API usage per user
-- Rotate keys without app updates
+- ✅ API keys remain completely secure
+- ✅ User authentication and authorization
+- ✅ Granular rate limiting and quotas
+- ✅ Real-time key rotation without app updates
+- ✅ Comprehensive usage analytics
+- ✅ Cost control and optimization
 
-#### Implementation Approach:
-1. **Backend Service**: Create endpoints like `/api/weather/current` and `/api/weather/forecast`
-2. **Authentication**: Require user tokens for API access
-3. **Rate Limiting**: Implement per-user quotas and throttling
-4. **Caching**: Server-side caching to minimize OpenWeatherMap API calls
-5. **Monitoring**: Track API usage, errors, and performance metrics
+#### 2. Alternative Security Measures (If Direct API Access Required)
 
-#### Alternative: Secure Key Storage
-If direct API access is required:
-- **iOS Keychain**: Store encrypted keys in iOS Keychain Services
-- **Key Obfuscation**: Advanced code obfuscation techniques
-- **Certificate Pinning**: Prevent man-in-the-middle attacks
-- **Runtime Checks**: Detect jailbroken devices and debugging tools
+**iOS Keychain Storage:**
+```swift
+// Store user-specific tokens, not API keys
+let keychain = Keychain(service: "com.yourapp.tokens")
+keychain["user_weather_token"] = userToken
+```
+
+**Certificate Pinning:**
+```swift
+// Pin OpenWeatherMap certificates
+let pinnedCertificates = ["openweathermap.org": certificateData]
+```
+
+**Runtime Security:**
+- Detect jailbroken/rooted devices
+- Implement anti-debugging measures
+- Use code obfuscation tools
+- Monitor for tampering attempts
+
+#### 3. Recommended Production Architecture
+
+```
+┌─────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│   iOS App   │───▶│  Your Backend    │───▶│ OpenWeatherMap  │
+│             │    │                  │    │      API        │
+│ • UI Logic  │    │ • Authentication │    │                 │
+│ • Caching   │    │ • Rate Limiting  │    │ • Weather Data  │
+│ • User Auth │    │ • API Keys       │    │ • Forecasts     │
+└─────────────┘    │ • Caching        │    └─────────────────┘
+                   │ • Analytics      │
+                   └──────────────────┘
+```
+
+**Security Benefits:**
+- 🔒 Zero client-side API keys
+- 🔐 User authentication required
+- 📊 Complete usage monitoring
+- 💰 Cost control and optimization
+- 🔄 Real-time key management
+- 🛡️ Protection against abuse
 
 ### Current Implementation Details
 

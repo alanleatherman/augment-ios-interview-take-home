@@ -13,12 +13,9 @@ struct APIConfiguration {
     private init() {}
     
     /// OpenWeatherMap API Key
-    /// In production, this should be stored securely on the server and retrieved via authenticated API calls
-    /// For development purposes, we're using a hardcoded key with obfuscation
+    /// Uses secure key management from APIKeys configuration
     var openWeatherMapAPIKey: String {
-        // Simple obfuscation - in production use proper key management
-        let obfuscatedKey = "5ba7fa811c3a97ec456f34293534cc6e"
-        return obfuscatedKey
+        return APIKeys.openWeatherMapAPIKey
     }
     
     /// Base URLs for OpenWeatherMap API

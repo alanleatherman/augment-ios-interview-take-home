@@ -29,11 +29,9 @@ final class WeatherInteractor: WeatherInteractorProtocol {
         appState.weatherState.error = nil
         
         do {
-            // Load cities from persistence
             let cities = try await repository.getAllCities()
             print("📍 Loaded \(cities.count) cities from persistence")
             
-            // Check which repository type we're using for debugging
             let repositoryType = String(describing: type(of: repository))
             print("🌤️ Using repository: \(repositoryType)")
             
@@ -68,19 +66,13 @@ final class WeatherInteractor: WeatherInteractorProtocol {
                 print("📍 Added missing default cities. Total cities: \(allCities.count)")
             }
             
-            // Sort cities to ensure favorite/last viewed city appears first
             allCities = sortCitiesWithFavoriteFirst(allCities)
-            
-            // Update app state with all cities (existing + any missing defaults)
             appState.weatherState.cities = allCities
             
-            // Load weather for all cities
             await refreshAllWeather()
-            
-            // Restore the last selected city index
+    
             restoreSelectedCityIndex()
             
-            // Ensure the TabView starts with the correct index by triggering a state update
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 let currentIndex = self.appState.weatherState.selectedCityIndex
                 self.updateSelectedCityIndex(currentIndex)
@@ -105,13 +97,9 @@ final class WeatherInteractor: WeatherInteractorProtocol {
                     City(name: "Auckland", countryCode: "NZ", latitude: -36.8485, longitude: 174.7633)
                 ]
                 
-                // Sort cities to ensure favorite city appears first
                 let sortedDefaultCities = sortCitiesWithFavoriteFirst(defaultCities)
-                
-                // Add cities directly to app state as fallback
                 appState.weatherState.cities = sortedDefaultCities
-                
-                // Try to load weather data for the default cities
+        
                 await refreshAllWeather()
             }
         }
@@ -180,7 +168,6 @@ final class WeatherInteractor: WeatherInteractorProtocol {
         var lastError: Error?
         for attempt in 1...3 {
             do {
-                // Check cache first (only on first attempt)
                 if attempt == 1, let cachedWeather = repository.getCachedWeather(for: city.id) {
                     print("🌤️ Using cached weather for: \(city.name)")
                     appState.weatherState.weatherData[city.id] = cachedWeather
@@ -195,45 +182,59 @@ final class WeatherInteractor: WeatherInteractorProtocol {
                     print("🌤️ No cached weather found, fetching fresh data for: \(city.name)")
                 }
                 
-                // Fetch fresh data
                 let weather = try await repository.getCurrentWeather(for: city)
-                
                 print("🌤️ Successfully fetched weather for: \(city.name) - \(weather.description)")
                 
-                // Update app state
                 appState.weatherState.weatherData[city.id] = weather
-                
-                // Cache the result
                 repository.cacheWeather(weather)
                 
-                // Clear any previous errors on success
                 if self.error != nil {
                     self.error = nil
                     appState.weatherState.error = nil
                 }
                 
-                return // Success, exit retry loop
-                
+                return
             } catch {
                 lastError = error
+                
+                if let weatherError = error as? WeatherError,
+                   case .networkFailure(let underlyingError) = weatherError,
+                   let urlError = underlyingError as? URLError,
+                   urlError.code == .cancelled {
+                    print("⚠️ Request cancelled for \(city.name) (attempt \(attempt)) - this is normal during rapid UI updates")
+                    return
+                }
+                
                 print("❌ Attempt \(attempt) failed for \(city.name): \(error)")
                 
                 // Don't retry on certain errors
                 if let weatherError = error as? WeatherError {
                     switch weatherError {
                     case .apiKeyInvalid, .cityNotFound:
-                        // Don't retry these errors
                         break
+                    case .networkFailure(let underlyingError):
+                        if let urlError = underlyingError as? URLError, urlError.code == .cancelled {
+                            return
+                        }
+                        continue
                     default:
-                        // Continue retrying for network errors
                         continue
                     }
                 }
             }
         }
         
-        // All retries failed
+        // All retries failed - but only show error if it wasn't a cancellation
         if let lastError = lastError {
+            // Check if the last error was a cancellation
+            if let weatherError = lastError as? WeatherError,
+               case .networkFailure(let underlyingError) = weatherError,
+               let urlError = underlyingError as? URLError,
+               urlError.code == .cancelled {
+                print("⚠️ Final attempt was cancelled for \(city.name) - not showing error banner")
+                return
+            }
+            
             print("❌ All retry attempts failed for \(city.name): \(lastError)")
             let weatherError = lastError as? WeatherError ?? .unknownError(lastError)
             self.error = weatherError
@@ -247,10 +248,7 @@ final class WeatherInteractor: WeatherInteractorProtocol {
         appState.weatherState.isLoading = true
         appState.weatherState.error = nil
         
-        // Get cities snapshot to avoid concurrent access
         let cities = appState.weatherState.cities
-        
-        // Refresh weather for all cities concurrently
         await withTaskGroup(of: Void.self) { group in
             for city in cities {
                 group.addTask {
@@ -285,7 +283,6 @@ final class WeatherInteractor: WeatherInteractorProtocol {
     
     func loadHourlyForecast(for city: City) async {
         do {
-            // Check cache first
             if let cachedForecast = repository.getCachedHourlyForecast(for: city.id) {
                 appState.weatherState.hourlyForecasts[city.id] = cachedForecast
                 return
@@ -293,14 +290,17 @@ final class WeatherInteractor: WeatherInteractorProtocol {
             
             // Fetch fresh data
             let forecast = try await repository.getHourlyForecast(for: city)
-            
-            // Update app state
             appState.weatherState.hourlyForecasts[city.id] = forecast
-            
-            // Cache the result
             repository.cacheHourlyForecast(forecast, for: city.id)
-            
         } catch {
+            if let weatherError = error as? WeatherError,
+               case .networkFailure(let underlyingError) = weatherError,
+               let urlError = underlyingError as? URLError,
+               urlError.code == .cancelled {
+                print("⚠️ Hourly forecast request cancelled for \(city.name) - this is normal")
+                return
+            }
+            
             let weatherError = error as? WeatherError ?? .unknownError(error)
             self.error = weatherError
             appState.weatherState.error = weatherError
@@ -315,16 +315,19 @@ final class WeatherInteractor: WeatherInteractorProtocol {
                 return
             }
             
-            // Fetch fresh data
             let forecast = try await repository.getDailyForecast(for: city)
-            
-            // Update app state
             appState.weatherState.dailyForecasts[city.id] = forecast
-            
-            // Cache the result
             repository.cacheDailyForecast(forecast, for: city.id)
-            
         } catch {
+            // Handle cancellation errors gracefully
+            if let weatherError = error as? WeatherError,
+               case .networkFailure(let underlyingError) = weatherError,
+               let urlError = underlyingError as? URLError,
+               urlError.code == .cancelled {
+                print("⚠️ Daily forecast request cancelled for \(city.name) - this is normal")
+                return
+            }
+            
             let weatherError = error as? WeatherError ?? .unknownError(error)
             self.error = weatherError
             appState.weatherState.error = weatherError
@@ -396,23 +399,18 @@ final class WeatherInteractor: WeatherInteractorProtocol {
         appState.weatherState.hourlyForecasts.removeValue(forKey: city.id)
         appState.weatherState.dailyForecasts.removeValue(forKey: city.id)
         
-        // Clear repository cache for this city to force fresh API calls
-        // We need to clear the entire cache since we don't have a method to clear just one city
         repository.clearCache()
         print("📍 Cleared all cached weather data to force fresh API calls")
         
-        // Refresh weather for the updated location
         await refreshWeather(for: city)
         print("📍 Refreshed weather for updated location: \(city.name)")
         
-        // Also reload forecast data
         await loadHourlyForecast(for: city)
         await loadDailyForecast(for: city)
         print("📍 Reloaded forecast data for updated location: \(city.name)")
     }
     
     func startLocationMonitoringIfNeeded() {
-        // Check if we have a current location city and start monitoring
         let hasCurrentLocationCity = appState.weatherState.cities.contains { $0.isCurrentLocation }
         if hasCurrentLocationCity {
             // We'll need to access the location interactor through the container
@@ -425,7 +423,6 @@ final class WeatherInteractor: WeatherInteractorProtocol {
     private func sortCitiesWithFavoriteFirst(_ cities: [City]) -> [City] {
         var sortedCities = cities
         
-        // Priority 1: Current location cities should always be first
         if let currentLocationIndex = sortedCities.firstIndex(where: { $0.isCurrentLocation }) {
             let currentLocationCity = sortedCities.remove(at: currentLocationIndex)
             sortedCities.insert(currentLocationCity, at: 0)
@@ -433,7 +430,7 @@ final class WeatherInteractor: WeatherInteractorProtocol {
             return sortedCities
         }
         
-        // Priority 2: Check if we have a home city ID (last viewed city)
+        // Priority 2: last viewed city
         if let homeCityId = appState.appSettings.homeCityId {
             // Find the home city and move it to the front
             if let homeCityIndex = sortedCities.firstIndex(where: { $0.id == homeCityId }) {
@@ -442,13 +439,6 @@ final class WeatherInteractor: WeatherInteractorProtocol {
                 print("📍 Moved home city to front: \(homeCity.name)")
                 return sortedCities
             }
-        }
-        
-        // Priority 3: If no home city is set, check if Rio de Janeiro (favorite city) exists and move it to front
-        if let rioIndex = sortedCities.firstIndex(where: { $0.name == "Rio de Janeiro" && $0.countryCode == "BR" }) {
-            let rioCity = sortedCities.remove(at: rioIndex)
-            sortedCities.insert(rioCity, at: 0)
-            print("📍 Moved favorite city (Rio de Janeiro) to front")
         }
         
         return sortedCities
