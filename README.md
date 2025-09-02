@@ -1,5 +1,10 @@
 # iOS Weather App - Take Home Interview
 
+<img width="256" height="256" alt="weather_icon" src="https://github.com/user-attachments/assets/d0aaeb03-a9fa-4fb6-8cbf-0220122d2fbc" />
+<img width="301" height="655" alt="Simulator Screenshot - iPhone 16 Pro - 2025-09-02 at 09 58 28" src="https://github.com/user-attachments/assets/afeedc8d-7791-4dfc-81ee-9690f14e7067" />
+<img width="301" height="655" alt="Simulator Screenshot - iPhone 16 Pro - 2025-09-02 at 09 58 32" src="https://github.com/user-attachments/assets/777bb6aa-cdfa-48e3-ac35-26aafd2d02a2" />
+
+
 A modern iOS weather application built with SwiftUI and SwiftData, featuring real-time weather data, intelligent location services, and a clean architecture pattern that mirrors the native iOS Weather app experience.
 
 ## Features
@@ -255,6 +260,22 @@ The app features a sophisticated theming system that adapts to weather condition
 - **API Response Models**: Match exact OpenWeatherMap JSON structure
 - **Domain Models**: Clean, UI-friendly models for app consumption
 - **Conversion Extensions**: Transform API responses to domain models with computed properties
+
+## Future Improvements
+
+Given more time, I would focus on these key areas for enhancement:
+
+### Architecture & Code Quality
+- **Better Mockability**: Enhance protocol abstractions and dependency injection for more comprehensive testing scenarios
+- **More In-Depth Testing**: Expand test coverage with edge cases, performance testing, and UI automation tests
+- **Better View Organization**: Further cleanup and modularization of Views/Screens/Subviews for improved maintainability
+- **Better Separation of Responsibilities**: More granular separation of concerns - while the current architecture is solid, it could be even more modular with additional time
+
+### Technical Debt & Refinements
+- **Enhanced Protocol Design**: More specific protocols for different aspects of weather and location services
+- **Improved Error Recovery**: More sophisticated retry mechanisms and offline mode capabilities  
+- **Performance Optimization**: Memory usage profiling and optimization for large city lists
+- **Code Documentation**: Comprehensive inline documentation for complex weather calculations and business logic
 
 ## Future Enhancements
 
