@@ -26,25 +26,32 @@ final class NetworkService: @unchecked Sendable {
         let requestKey = url.absoluteString
         
         // Check if there's already an active request for this URL
-        return try await taskQueue.sync {
-            if let existingTask = activeTasks[requestKey] {
-                print("🔄 Reusing existing request for: \(url.absoluteString)")
-                return existingTask
-            }
-            
-            let task = Task<Any, Error> {
-                defer {
-                    taskQueue.async(flags: .barrier) {
-                        self.activeTasks.removeValue(forKey: requestKey)
+        let task: Task<Any, Error> = await withCheckedContinuation { continuation in
+            taskQueue.async {
+                if let existingTask = self.activeTasks[requestKey] {
+                    print("🔄 Reusing existing request for: \(url.absoluteString)")
+                    continuation.resume(returning: existingTask)
+                } else {
+                    let newTask = Task<Any, Error> {
+                        defer {
+                            self.taskQueue.async(flags: .barrier) {
+                                self.activeTasks.removeValue(forKey: requestKey)
+                            }
+                        }
+                        
+                        return try await self.performRequest(type, from: url)
                     }
+                    
+                    // Use barrier for write operation
+                    self.taskQueue.async(flags: .barrier) {
+                        self.activeTasks[requestKey] = newTask
+                    }
+                    continuation.resume(returning: newTask)
                 }
-                
-                return try await performRequest(type, from: url)
             }
-            
-            activeTasks[requestKey] = task
-            return task
-        }.value as! T
+        }
+        
+        return try await task.value as! T
     }
     
     private func performRequest<T: Codable>(_ type: T.Type, from url: URL) async throws -> T {

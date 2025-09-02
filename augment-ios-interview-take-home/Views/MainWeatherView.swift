@@ -13,20 +13,31 @@ struct MainWeatherView: View {
     @Environment(\.container) private var container
     
     @State private var showingCityList = false
+    @State private var isInitialSetupComplete = false
     
     var body: some View {
         ZStack {
             if appState.weatherState.cities.isEmpty {
                 EmptyStateView()
+            } else if !isInitialSetupComplete {
+                // Show loading state during initial setup to prevent TabView jumping
+                ProgressView("Loading...")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color.clear)
             } else {
                 TabView(selection: Binding(
                     get: { 
-                        let index = appState.weatherState.selectedCityIndex
-                        let maxIndex = max(0, appState.weatherState.cities.count - 1)
-                        return min(index, maxIndex)
+                        let currentIndex = appState.weatherState.selectedCityIndex
+                        let cityCount = appState.weatherState.cities.count
+                        // Ensure the index is valid before returning it
+                        return (cityCount > 0 && currentIndex >= 0 && currentIndex < cityCount) ? currentIndex : 0
                     },
                     set: { newIndex in
-                        interactors.weatherInteractor.updateSelectedCityIndex(newIndex)
+                        let cityCount = appState.weatherState.cities.count
+                        // Only update if the new index is valid
+                        if cityCount > 0 && newIndex >= 0 && newIndex < cityCount {
+                            interactors.weatherInteractor.updateSelectedCityIndex(newIndex)
+                        }
                     }
                 )) {
                     ForEach(Array(appState.weatherState.cities.enumerated()), id: \.element.id) { index, city in
@@ -37,11 +48,18 @@ struct MainWeatherView: View {
                 .tabViewStyle(.page(indexDisplayMode: .never)) // Hide default dots
                 .indexViewStyle(.page(backgroundDisplayMode: .never))
                 .onAppear {
-                    if !appState.weatherState.cities.isEmpty {
+                    // Mark setup as complete when TabView appears with valid data
+                    let cityCount = appState.weatherState.cities.count
+                    if cityCount > 0 {
                         let currentIndex = appState.weatherState.selectedCityIndex
-                        let maxIndex = appState.weatherState.cities.count - 1
-                        if currentIndex > maxIndex {
+                        if currentIndex < 0 || currentIndex >= cityCount {
+                            // Reset to 0 if invalid
                             interactors.weatherInteractor.updateSelectedCityIndex(0)
+                        }
+                        
+                        // Mark setup as complete after ensuring valid state
+                        DispatchQueue.main.async {
+                            isInitialSetupComplete = true
                         }
                     }
                 }
@@ -168,6 +186,23 @@ struct MainWeatherView: View {
         }
         .onDisappear {
             container.stopLocationMonitoring()
+        }
+        .onChange(of: appState.weatherState.cities) { _, newCities in
+            // Reset setup completion when cities change, then mark complete after a brief delay
+            if !newCities.isEmpty && !appState.weatherState.isLoading {
+                isInitialSetupComplete = false
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    isInitialSetupComplete = true
+                }
+            }
+        }
+        .onChange(of: appState.weatherState.isLoading) { _, isLoading in
+            // Mark setup complete when loading finishes and we have cities
+            if !isLoading && !appState.weatherState.cities.isEmpty {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    isInitialSetupComplete = true
+                }
+            }
         }
     }
     

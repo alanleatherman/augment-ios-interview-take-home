@@ -135,16 +135,8 @@ struct WeatherTheme {
     }
     
     static func textColor(for iconCode: String) -> Color {
-        let code = iconCode.prefix(2)
-        
-        switch code {
-        case "13": // Snow - use darker text for better contrast on light background
-            return Color.black.opacity(0.8)
-        case "50": // Fog - use darker text
-            return Color.black.opacity(0.7)
-        default: // All other conditions use white text
-            return Color.white
-        }
+        // Use white text for all weather conditions for consistency
+        return Color.white
     }
     
     static func secondaryTextColor(for weather: Weather) -> Color {
@@ -152,16 +144,8 @@ struct WeatherTheme {
     }
     
     static func secondaryTextColor(for iconCode: String) -> Color {
-        let code = iconCode.prefix(2)
-        
-        switch code {
-        case "13": // Snow
-            return Color.black.opacity(0.6)
-        case "50": // Fog
-            return Color.black.opacity(0.5)
-        default:
-            return Color.white.opacity(0.8)
-        }
+        // Use white text with opacity for all weather conditions for consistency
+        return Color.white.opacity(0.8)
     }
     
     // MARK: - Animation Support

@@ -58,17 +58,14 @@ final class WeatherInteractor: WeatherInteractorProtocol {
                 print("📍 Using existing \(cities.count) cities from persistence")
             }
             
-            allCities = sortCitiesWithFavoriteFirst(allCities)
-            appState.weatherState.cities = allCities
+            // Sort cities first to get the final order
+            let sortedCities = sortCitiesWithFavoriteFirst(allCities)
+            appState.weatherState.cities = sortedCities
             
-            await refreshAllWeather()
-    
+            // Then restore the selected city index based on saved preferences
             restoreSelectedCityIndex()
             
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                let currentIndex = self.appState.weatherState.selectedCityIndex
-                self.updateSelectedCityIndex(currentIndex)
-            }
+            await refreshAllWeather()
             
             appState.weatherState.lastRefresh = Date()
             
@@ -372,10 +369,27 @@ final class WeatherInteractor: WeatherInteractorProtocol {
     }
     
     private func restoreSelectedCityIndex() {
+        let cityCount = appState.weatherState.cities.count
+        
+        // Ensure we have cities
+        guard cityCount > 0 else {
+            appState.weatherState.selectedCityIndex = 0
+            return
+        }
+        
+        // Get the saved index and ensure it's valid for the current city count
         let savedIndex = appState.appSettings.lastSelectedCityIndex
-        let maxIndex = max(0, appState.weatherState.cities.count - 1)
-        appState.weatherState.selectedCityIndex = min(savedIndex, maxIndex)
-        print("📍 Restored selected city index: \(appState.weatherState.selectedCityIndex)")
+        let validIndex = max(0, min(savedIndex, cityCount - 1))
+        
+        appState.weatherState.selectedCityIndex = validIndex
+        
+        print("📍 Restored selected city index: \(validIndex) (saved: \(savedIndex), cities: \(cityCount))")
+        
+        // If we had to clamp the index, save the corrected value
+        if validIndex != savedIndex {
+            appState.appSettings.lastSelectedCityIndex = validIndex
+            print("📍 Corrected and saved selected city index: \(validIndex)")
+        }
     }
     
     // MARK: - Home City Management
@@ -433,6 +447,7 @@ final class WeatherInteractor: WeatherInteractorProtocol {
     private func sortCitiesWithFavoriteFirst(_ cities: [City]) -> [City] {
         var sortedCities = cities
         
+        // Priority 1: Current location city goes first
         if let currentLocationIndex = sortedCities.firstIndex(where: { $0.isCurrentLocation }) {
             let currentLocationCity = sortedCities.remove(at: currentLocationIndex)
             sortedCities.insert(currentLocationCity, at: 0)
@@ -440,9 +455,8 @@ final class WeatherInteractor: WeatherInteractorProtocol {
             return sortedCities
         }
         
-        // Priority 2: last viewed city
+        // Priority 2: Home city goes first (if no current location city)
         if let homeCityId = appState.appSettings.homeCityId {
-            // Find the home city and move it to the front
             if let homeCityIndex = sortedCities.firstIndex(where: { $0.id == homeCityId }) {
                 let homeCity = sortedCities.remove(at: homeCityIndex)
                 sortedCities.insert(homeCity, at: 0)
