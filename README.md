@@ -1,6 +1,6 @@
 # iOS Weather App - Take Home Interview
 
-<img width="256" height="256" alt="weather_icon" src="https://github.com/user-attachments/assets/d0aaeb03-a9fa-4fb6-8cbf-0220122d2fbc" />
+<img width="200" height="200" alt="weather_icon" src="https://github.com/user-attachments/assets/d0aaeb03-a9fa-4fb6-8cbf-0220122d2fbc" />
 <img width="301" height="655" alt="Simulator Screenshot - iPhone 16 Pro - 2025-09-02 at 09 58 28" src="https://github.com/user-attachments/assets/afeedc8d-7791-4dfc-81ee-9690f14e7067" />
 <img width="301" height="655" alt="Simulator Screenshot - iPhone 16 Pro - 2025-09-02 at 09 58 32" src="https://github.com/user-attachments/assets/777bb6aa-cdfa-48e3-ac35-26aafd2d02a2" />
 
