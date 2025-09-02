@@ -77,11 +77,11 @@ extension AppEnvironment {
     
     private static func createMockInteractors(appState: AppState) -> AppContainer.Interactors {
         let weatherInteractor = WeatherInteractor(
-            repository: WeatherPreviewRepository(), // Mock data
+            repository: WeatherPreviewRepository(),
             appState: appState
         )
         let locationInteractor = LocationInteractor(
-            repository: LocationPreviewRepository(), // Mock location
+            repository: LocationPreviewRepository(),
             appState: appState
         )
         
@@ -93,11 +93,11 @@ extension AppEnvironment {
     
     private static func createRealAPIInteractors(appState: AppState, modelContext: ModelContext? = nil) -> AppContainer.Interactors {
         let weatherInteractor = WeatherInteractor(
-            repository: WeatherWebRepository(modelContext: modelContext, appSettings: appState.appSettings), // Real API
+            repository: WeatherWebRepository(modelContext: modelContext, appSettings: appState.appSettings),
             appState: appState
         )
         let locationInteractor = LocationInteractor(
-            repository: LocationWebRepository(), // Real location services
+            repository: LocationWebRepository(),
             appState: appState
         )
         

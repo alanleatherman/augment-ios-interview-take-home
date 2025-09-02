@@ -20,7 +20,6 @@ class CitySearchService {
     private nonisolated(unsafe) var searchTask: Task<Void, Never>?
     
     func searchCities(query: String) async {
-        // Cancel any existing search task
         searchTask?.cancel()
         
         searchTask = Task {

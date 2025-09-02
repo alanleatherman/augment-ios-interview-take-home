@@ -94,7 +94,6 @@ final class LocationInteractor: LocationInteractorProtocol {
     }
     
     nonisolated func hasLocationPermission() -> Bool {
-        // This can be called from any thread for quick checks
         let status = repository.getAuthorizationStatus()
         return status == .authorizedWhenInUse || status == .authorizedAlways
     }
@@ -110,21 +109,16 @@ final class LocationInteractor: LocationInteractorProtocol {
     }
     
     func checkPermissionStatusAndRetry() async {
-        // This method can be called when the app becomes active again
-        // to check if the user has enabled location permission in Settings
         let currentStatus = repository.getAuthorizationStatus()
         appState.locationState.authorizationStatus = currentStatus
         
-        // Clear previous errors if permission is now granted
         if currentStatus == .authorizedWhenInUse || currentStatus == .authorizedAlways {
             error = nil
             appState.locationState.locationError = nil
             appState.weatherState.error = nil
             
-            // Start location monitoring if permission is granted
             startLocationMonitoring()
         } else {
-            // Stop monitoring if permission is revoked
             stopLocationMonitoring()
         }
     }
@@ -148,24 +142,19 @@ final class LocationInteractor: LocationInteractorProtocol {
     private func handleLocationUpdate(_ location: CLLocation) async {
         print("📍 Location update received: \(location.coordinate.latitude), \(location.coordinate.longitude)")
         
-        // Update the current location in app state
         appState.locationState.currentLocation = location
         
-        // Find current location city and update its weather
         if let currentLocationCity = appState.weatherState.cities.first(where: { $0.isCurrentLocation }) {
             print("📍 Found existing current location city: \(currentLocationCity.name)")
             
-            // Update the city's coordinates if they've changed significantly
             let distance = CLLocation(latitude: currentLocationCity.latitude, longitude: currentLocationCity.longitude)
                 .distance(from: location)
             
             print("📍 Distance from previous location: \(Int(distance))m")
             
-            // Only update if the location has changed by more than 1km
             if distance > 1000 {
                 print("📍 Location changed significantly (\(Int(distance))m), updating current location city")
                 
-                // Get updated city name through reverse geocoding
                 Task { @MainActor in
                     let geocoder = CLGeocoder()
                     do {
@@ -175,7 +164,6 @@ final class LocationInteractor: LocationInteractorProtocol {
                         
                         print("📍 Reverse geocoded new location to: \(cityName), \(countryCode)")
                         
-                        // Create updated city with new coordinates and potentially new name
                         let updatedCity = City(
                             id: currentLocationCity.id,
                             name: cityName,
@@ -185,13 +173,11 @@ final class LocationInteractor: LocationInteractorProtocol {
                             isCurrentLocation: true
                         )
                         
-                        // Update the city in the cities array
                         if let index = appState.weatherState.cities.firstIndex(where: { $0.id == currentLocationCity.id }) {
                             appState.weatherState.cities[index] = updatedCity
                             print("📍 Updated city coordinates and name in app state")
                         }
                         
-                        // Refresh weather for the updated location
                         NotificationCenter.default.post(
                             name: NSNotification.Name("LocationUpdated"),
                             object: updatedCity
@@ -201,7 +187,6 @@ final class LocationInteractor: LocationInteractorProtocol {
                     } catch {
                         print("📍 Reverse geocoding failed, keeping existing city name: \(error)")
                         
-                        // Create updated city with new coordinates but keep existing name
                         let updatedCity = City(
                             id: currentLocationCity.id,
                             name: currentLocationCity.name,
@@ -211,13 +196,11 @@ final class LocationInteractor: LocationInteractorProtocol {
                             isCurrentLocation: true
                         )
                         
-                        // Update the city in the cities array
                         if let index = appState.weatherState.cities.firstIndex(where: { $0.id == currentLocationCity.id }) {
                             appState.weatherState.cities[index] = updatedCity
                             print("📍 Updated city coordinates in app state (kept existing name)")
                         }
                         
-                        // Refresh weather for the updated location
                         NotificationCenter.default.post(
                             name: NSNotification.Name("LocationUpdated"),
                             object: updatedCity

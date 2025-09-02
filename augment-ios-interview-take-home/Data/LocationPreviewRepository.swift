@@ -33,7 +33,6 @@ final class LocationPreviewRepository: LocationRepositoryProtocol, @unchecked Se
         return authorizationStatus
     }
     
-    // Helper method for testing different scenarios
     func setAuthorizationStatus(_ status: CLAuthorizationStatus) {
         authorizationStatus = status
     }

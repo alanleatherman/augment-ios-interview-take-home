@@ -75,56 +75,45 @@ struct AppContainer {
     
     @MainActor
     func addCurrentLocationCity() async {
-        // Set loading state at the beginning
         appState.locationState.isRequestingLocation = true
         
-        // Clear any previous errors
         appState.weatherState.error = nil
         appState.locationState.locationError = nil
         
         defer {
-            // Always clear loading state when done
             appState.locationState.isRequestingLocation = false
         }
         
-        // First check if we already have current location cities and remove ALL of them
         let existingCurrentLocationCities = appState.weatherState.cities.filter { $0.isCurrentLocation }
         for existingCity in existingCurrentLocationCities {
             await interactors.weatherInteractor.removeCity(existingCity)
         }
         
-        // Check current authorization status
         let currentStatus = appState.locationState.authorizationStatus
         
         switch currentStatus {
         case .notDetermined:
-            // Request permission for the first time
             await interactors.locationInteractor.requestLocationPermission()
             
             // Wait a moment for the permission dialog to be processed
             try? await Task.sleep(for: .milliseconds(500))
             
-            // Check the result
             let newStatus = appState.locationState.authorizationStatus
             if newStatus == .denied || newStatus == .restricted {
                 appState.weatherState.error = .locationPermissionDenied
                 return
             } else if newStatus == .authorizedWhenInUse || newStatus == .authorizedAlways {
-                // Permission granted, proceed to get location
                 await getCurrentLocationAndAddCity()
             }
             
         case .denied, .restricted:
-            // Permission was previously denied, show error with guidance to settings
             appState.weatherState.error = .locationPermissionDenied
             return
             
         case .authorizedWhenInUse, .authorizedAlways:
-            // Permission already granted, get location
             await getCurrentLocationAndAddCity()
             
         @unknown default:
-            // Handle future cases
             appState.weatherState.error = .unknownError(LocationError.permissionDenied)
             return
         }
@@ -136,11 +125,9 @@ struct AppContainer {
             let location = try await interactors.locationInteractor.getCurrentLocation()
             print("📍 Got location: \(location.coordinate.latitude), \(location.coordinate.longitude)")
             
-            // Use reverse geocoding to get the city name
             let (cityName, countryCode) = await getCityName(from: location)
             print("📍 Reverse geocoded to: \(cityName), \(countryCode)")
             
-            // Create current location city with actual city name
             let currentLocationCity = City(
                 name: cityName,
                 countryCode: countryCode,
@@ -151,21 +138,18 @@ struct AppContainer {
             
             print("📍 Created current location city: \(currentLocationCity.name) at \(currentLocationCity.latitude), \(currentLocationCity.longitude)")
             
-            // Add the city and fetch weather
             await interactors.weatherInteractor.addCity(currentLocationCity)
             
-            // Switch to the newly added current location city
             if let newCityIndex = appState.weatherState.cities.firstIndex(where: { $0.isCurrentLocation }) {
                 appState.weatherState.selectedCityIndex = newCityIndex
                 print("📍 Switched to current location city at index: \(newCityIndex)")
             }
             
-            // Start location monitoring for the new current location city
             startLocationMonitoringIfNeeded()
             
         } catch {
             print("❌ Error getting current location: \(error)")
-            // Handle location error gracefully
+
             if let locationError = error as? LocationError {
                 switch locationError {
                 case .permissionDenied:
@@ -201,26 +185,22 @@ struct AppContainer {
             print("🌍 Reverse geocoding failed: \(error)")
         }
         
-        // Fallback to "Current Location" if geocoding fails
+        // Fallback to Current Location
         print("🌍 Using fallback: Current Location")
         return ("Current Location", "")
     }
     
     @MainActor
     func handleAppDidBecomeActive() async {
-        // Check if location permission status has changed when app becomes active
-        // This is useful when user goes to Settings and enables location permission
         let previousStatus = appState.locationState.authorizationStatus
         await interactors.locationInteractor.checkPermissionStatusAndRetry()
         let currentStatus = appState.locationState.authorizationStatus
         
-        // If permission was just granted, add current location city
-        if (previousStatus == .denied || previousStatus == .notDetermined) && 
+        if (previousStatus == .denied || previousStatus == .notDetermined) &&
            (currentStatus == .authorizedWhenInUse || currentStatus == .authorizedAlways) {
             await addCurrentLocationCity()
         }
         
-        // Start location monitoring if we have a current location city
         startLocationMonitoringIfNeeded()
     }
     
@@ -230,7 +210,6 @@ struct AppContainer {
         if hasCurrentLocationCity {
             interactors.locationInteractor.startLocationMonitoring()
             
-            // Set up notification observer for location updates
             NotificationCenter.default.addObserver(
                 forName: NSNotification.Name("LocationUpdated"),
                 object: nil,
@@ -256,13 +235,10 @@ struct AppContainer {
     
     @MainActor
     func navigateToCurrentLocationCity() async {
-        // If user has permission and current location city exists, navigate to it
         if appState.locationState.hasLocationPermission {
             if let currentLocationIndex = appState.weatherState.cities.firstIndex(where: { $0.isCurrentLocation }) {
-                // Navigate to existing current location city
                 interactors.weatherInteractor.updateSelectedCityIndex(currentLocationIndex)
             } else {
-                // No current location city exists, add one
                 await addCurrentLocationCity()
             }
         } else {
@@ -273,8 +249,6 @@ struct AppContainer {
     
     @MainActor
     func handleAppDidEnterBackground() async {
-        // Save the current selected city index when app goes to background
-        // This ensures the user returns to the same city they were viewing
         let currentIndex = appState.weatherState.selectedCityIndex
         interactors.weatherInteractor.markCurrentCityAsHome()
         print("💾 App entering background - saved selected city index: \(currentIndex)")

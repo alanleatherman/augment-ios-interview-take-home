@@ -101,9 +101,8 @@ final class CachedHourlyForecast {
         self.id = UUID()
         self.cityId = cityId
         self.lastUpdated = Date()
-        self.expiresAt = Date().addingTimeInterval(60 * 60) // 1 hour cache
+        self.expiresAt = Date().addingTimeInterval(60 * 60)
         
-        // Encode forecast to Data
         do {
             self.forecastData = try JSONEncoder().encode(forecast)
         } catch {
@@ -136,7 +135,7 @@ final class CachedDailyForecast {
         self.id = UUID()
         self.cityId = cityId
         self.lastUpdated = Date()
-        self.expiresAt = Date().addingTimeInterval(60 * 60) // 1 hour cache
+        self.expiresAt = Date().addingTimeInterval(60 * 60)
         
         // Encode forecast to Data
         do {

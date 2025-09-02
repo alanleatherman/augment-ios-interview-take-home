@@ -24,7 +24,7 @@ class WeatherState {
     var isLoading = false
     var error: WeatherError?
     var lastRefresh: Date?
-    var selectedCityIndex: Int = 0 // Track the currently selected city
+    var selectedCityIndex: Int = 0
     
     // Computed properties
     var citiesWithWeather: [(City, Weather?)] {
@@ -60,10 +60,8 @@ class LocationState {
 
 @Observable
 class AppSettings {
-    // Use UserDefaults for persistence
     private let userDefaults = UserDefaults.standard
     
-    // Temperature unit with persistence
     var temperatureUnit: TemperatureUnit {
         get {
             let rawValue = userDefaults.string(forKey: "temperatureUnit") ?? TemperatureUnit.fahrenheit.rawValue
@@ -74,18 +72,16 @@ class AppSettings {
         }
     }
     
-    // Refresh interval with persistence
     var refreshInterval: TimeInterval {
         get {
             let interval = userDefaults.double(forKey: "refreshInterval")
-            return interval > 0 ? interval : 600 // Default to 10 minutes
+            return interval > 0 ? interval : 600
         }
         set {
             userDefaults.set(newValue, forKey: "refreshInterval")
         }
     }
     
-    // Auto refresh setting with persistence
     var enableAutoRefresh: Bool {
         get {
             // Default to true if not set
@@ -96,7 +92,6 @@ class AppSettings {
         }
     }
     
-    // Location services setting with persistence
     var enableLocationServices: Bool {
         get {
             // Default to true if not set
@@ -107,10 +102,9 @@ class AppSettings {
         }
     }
     
-    // Last selected city index with persistence - THIS IS THE KEY FIX
     var lastSelectedCityIndex: Int {
         get {
-            return userDefaults.integer(forKey: "lastSelectedCityIndex") // Defaults to 0
+            return userDefaults.integer(forKey: "lastSelectedCityIndex")
         }
         set {
             userDefaults.set(newValue, forKey: "lastSelectedCityIndex")
@@ -118,7 +112,6 @@ class AppSettings {
         }
     }
     
-    // Home city ID with persistence
     var homeCityId: UUID? {
         get {
             guard let uuidString = userDefaults.string(forKey: "homeCityId") else { return nil }

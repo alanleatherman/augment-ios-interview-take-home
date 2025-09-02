@@ -89,7 +89,6 @@ final class WeatherWebRepository: WeatherRepositoryProtocol, @unchecked Sendable
         let forecastResponse = try await getForecastData(for: city)
         var dailyForecast = forecastResponse.list.toDailyWeather()
         
-        // Replace today's forecast with current weather data for more accuracy
         if !dailyForecast.isEmpty {
             do {
                 let currentWeatherData = try await getCurrentWeather(for: city)
@@ -100,7 +99,7 @@ final class WeatherWebRepository: WeatherRepositoryProtocol, @unchecked Sendable
                     temperatureMax: currentWeatherData.temperatureMax,
                     iconCode: currentWeatherData.iconCode,
                     description: currentWeatherData.description,
-                    precipitationChance: 0.0 // Current weather doesn't include precipitation chance
+                    precipitationChance: 0.0
                 )
                 dailyForecast[0] = todayFromCurrent
                 
@@ -152,7 +151,6 @@ final class WeatherWebRepository: WeatherRepositoryProtocol, @unchecked Sendable
     // MARK: - Combined Weather Data Methods
     
     func getCompleteWeatherData(for city: City) async throws -> (weather: Weather, hourly: [HourlyWeather], daily: [DailyWeather]) {
-        // Use separate API calls for current weather and forecast
         async let currentWeather = getCurrentWeather(for: city)
         async let forecastData = getForecastData(for: city)
         
@@ -165,7 +163,6 @@ final class WeatherWebRepository: WeatherRepositoryProtocol, @unchecked Sendable
     }
     
     func getCompleteWeatherData(latitude: Double, longitude: Double) async throws -> (weather: Weather, hourly: [HourlyWeather], daily: [DailyWeather]) {
-        // Use separate API calls for current weather and forecast
         async let currentWeather = getCurrentWeather(latitude: latitude, longitude: longitude)
         async let forecastData = getForecastData(latitude: latitude, longitude: longitude)
         
@@ -178,7 +175,6 @@ final class WeatherWebRepository: WeatherRepositoryProtocol, @unchecked Sendable
     }
     
     func getExtendedForecast(for city: City) async throws -> [DailyWeather] {
-        // 5-day forecast API provides up to 5 days of daily forecast
         return try await getDailyForecast(for: city)
     }
     
@@ -259,13 +255,12 @@ final class WeatherWebRepository: WeatherRepositoryProtocol, @unchecked Sendable
                 modelContext.delete(cached)
             }
             
-            // Insert new cached weather
             let cachedWeather = CachedWeather(from: weather)
             modelContext.insert(cachedWeather)
-            
+        
             try modelContext.save()
         } catch {
-            // Silently fail for caching errors
+            // Silently fail
         }
     }
     
@@ -273,7 +268,6 @@ final class WeatherWebRepository: WeatherRepositoryProtocol, @unchecked Sendable
     func cacheHourlyForecast(_ forecast: [HourlyWeather], for cityId: UUID) {
         guard let modelContext = modelContext else { return }
         
-        // Remove existing cached forecast for this city
         let descriptor = FetchDescriptor<CachedHourlyForecast>(
             predicate: #Predicate<CachedHourlyForecast> { cachedForecast in
                 cachedForecast.cityId == cityId
@@ -286,7 +280,6 @@ final class WeatherWebRepository: WeatherRepositoryProtocol, @unchecked Sendable
                 modelContext.delete(cached)
             }
             
-            // Insert new cached forecast
             let cachedForecast = CachedHourlyForecast(cityId: cityId, forecast: forecast)
             modelContext.insert(cachedForecast)
             
@@ -301,7 +294,6 @@ final class WeatherWebRepository: WeatherRepositoryProtocol, @unchecked Sendable
     func cacheDailyForecast(_ forecast: [DailyWeather], for cityId: UUID) {
         guard let modelContext = modelContext else { return }
         
-        // Remove existing cached forecast for this city
         let descriptor = FetchDescriptor<CachedDailyForecast>(
             predicate: #Predicate<CachedDailyForecast> { cachedForecast in
                 cachedForecast.cityId == cityId
@@ -314,7 +306,6 @@ final class WeatherWebRepository: WeatherRepositoryProtocol, @unchecked Sendable
                 modelContext.delete(cached)
             }
             
-            // Insert new cached forecast
             let cachedForecast = CachedDailyForecast(cityId: cityId, forecast: forecast)
             modelContext.insert(cachedForecast)
             
@@ -330,21 +321,18 @@ final class WeatherWebRepository: WeatherRepositoryProtocol, @unchecked Sendable
         guard let modelContext = modelContext else { return }
         
         do {
-            // Clear weather cache
             let weatherDescriptor = FetchDescriptor<CachedWeather>()
             let cachedWeather = try modelContext.fetch(weatherDescriptor)
             for cached in cachedWeather {
                 modelContext.delete(cached)
             }
             
-            // Clear hourly forecast cache
             let hourlyDescriptor = FetchDescriptor<CachedHourlyForecast>()
             let cachedHourly = try modelContext.fetch(hourlyDescriptor)
             for cached in cachedHourly {
                 modelContext.delete(cached)
             }
             
-            // Clear daily forecast cache
             let dailyDescriptor = FetchDescriptor<CachedDailyForecast>()
             let cachedDaily = try modelContext.fetch(dailyDescriptor)
             for cached in cachedDaily {
@@ -383,7 +371,6 @@ final class WeatherWebRepository: WeatherRepositoryProtocol, @unchecked Sendable
         
         modelContext.delete(city)
         
-        // Clear cached weather data for this city
         let cityId = city.id
         let descriptor = FetchDescriptor<CachedWeather>(
             predicate: #Predicate<CachedWeather> { cachedWeather in

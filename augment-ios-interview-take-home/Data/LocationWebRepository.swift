@@ -51,7 +51,7 @@ final class LocationWebRepository: NSObject, LocationRepositoryProtocol, @unchec
         return try await withCheckedThrowingContinuation { continuation in
             self.locationContinuation = continuation
             
-            // Set timeout
+            // Timeout
             DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
                 if self.locationContinuation != nil {
                     self.locationContinuation?.resume(throwing: LocationError.timeout)

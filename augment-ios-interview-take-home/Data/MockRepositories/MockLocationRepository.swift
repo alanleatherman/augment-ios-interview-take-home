@@ -15,7 +15,6 @@ class MockLocationRepository: LocationRepositoryProtocol, @unchecked Sendable {
     var errorToThrow: LocationError = .permissionDenied
     var permissionRequestCount = 0
     
-    // Additional properties needed by tests
     var authorizationStatus: CLAuthorizationStatus {
         get { mockAuthorizationStatus }
         set { mockAuthorizationStatus = newValue }
@@ -35,9 +34,6 @@ class MockLocationRepository: LocationRepositoryProtocol, @unchecked Sendable {
         } else {
             try? await Task.sleep(for: .milliseconds(50))
         }
-        
-        // In real implementation, this would trigger the system dialog
-        // For testing, we can simulate the user's response by changing the status
     }
     
     func getCurrentLocation() async throws -> CLLocation {

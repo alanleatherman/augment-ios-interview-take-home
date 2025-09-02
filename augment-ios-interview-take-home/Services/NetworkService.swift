@@ -59,7 +59,6 @@ final class NetworkService: @unchecked Sendable {
             print("🌐 Making network request to: \(url.absoluteString)")
             
             let (data, response) = try await session.data(from: url)
-            
             guard let httpResponse = response as? HTTPURLResponse else {
                 print("❌ Invalid HTTP response")
                 throw WeatherError.networkFailure(URLError(.badServerResponse))
