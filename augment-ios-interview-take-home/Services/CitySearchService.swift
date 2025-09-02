@@ -2,7 +2,7 @@
 //  CitySearchService.swift
 //  augment-ios-interview-take-home
 //
-//  Created by Kiro on 9/1/25.
+//  Created by Alan Leatherman on 9/1/25.
 //
 
 import Foundation
@@ -13,6 +13,7 @@ import CoreLocation
 class CitySearchService: ObservableObject {
     @Published var searchResults: [City] = []
     @Published var isSearching = false
+    @Published var hasSearched = false
     
     private let geocoder = CLGeocoder()
     private var searchTask: Task<Void, Never>?
@@ -23,17 +24,27 @@ class CitySearchService: ObservableObject {
         
         searchTask = Task {
             guard !query.isEmpty else {
-                searchResults = []
+                await MainActor.run {
+                    searchResults = []
+                    isSearching = false
+                    hasSearched = false
+                }
                 return
             }
+            
+            // Loading state is already set in the view's onChange
+            // hasSearched is already set to false in the view's onChange
             
             // Add debounce delay
             try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
             
             // Check if task was cancelled during delay
-            guard !Task.isCancelled else { return }
-            
-            isSearching = true
+            guard !Task.isCancelled else { 
+                await MainActor.run {
+                    isSearching = false
+                }
+                return 
+            }
         
         do {
             // Use MKLocalSearch for better city search results
@@ -95,21 +106,37 @@ class CitySearchService: ObservableObject {
                 }
             }
             
-            searchResults = cities
+            await MainActor.run {
+                searchResults = cities
+            }
             
             } catch {
                 print("City search error: \(error)")
-                searchResults = []
+                await MainActor.run {
+                    searchResults = []
+                }
             }
             
-            isSearching = false
+            // Always reset loading state when search completes
+            if !Task.isCancelled {
+                await MainActor.run {
+                    isSearching = false
+                    hasSearched = true
+                }
+            }
         }
         
         await searchTask?.value
     }
     
     func clearResults() {
+        searchTask?.cancel()
         searchResults = []
         isSearching = false
+        hasSearched = false
+    }
+    
+    deinit {
+        searchTask?.cancel()
     }
 }

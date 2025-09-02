@@ -59,6 +59,10 @@ final class StubWeatherInteractor: WeatherInteractorProtocol {
     func isHomeCity(_ city: City) -> Bool {
         return false
     }
+    
+    func handleLocationUpdate(for city: City) async {
+        // No-op for stub
+    }
 }
 
 // MARK: - Stub Location Interactor
@@ -74,5 +78,17 @@ final class StubLocationInteractor: LocationInteractorProtocol {
     
     func checkLocationPermission() -> Bool {
         return true
+    }
+    
+    func checkPermissionStatusAndRetry() async {
+        // No-op for stub
+    }
+    
+    nonisolated func startLocationMonitoring() {
+        // No-op for stub
+    }
+    
+    nonisolated func stopLocationMonitoring() {
+        // No-op for stub
     }
 }

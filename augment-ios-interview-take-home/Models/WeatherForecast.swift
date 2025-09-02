@@ -57,7 +57,9 @@ struct DailyWeather: Codable, Identifiable, Sendable {
         if Calendar.current.isDateInToday(date) {
             return "Today"
         } else if Calendar.current.isDateInTomorrow(date) {
-            return "Tomorrow"
+            // Use abbreviated day name instead of "Tomorrow" to prevent text wrapping
+            formatter.dateFormat = "E"
+            return formatter.string(from: date)
         } else {
             formatter.dateFormat = "E"
             return formatter.string(from: date)

@@ -37,4 +37,14 @@ final class LocationPreviewRepository: LocationRepositoryProtocol, @unchecked Se
     func setAuthorizationStatus(_ status: CLAuthorizationStatus) {
         authorizationStatus = status
     }
+    
+    // MARK: - Location Monitoring (Preview Implementation)
+    
+    nonisolated func startLocationMonitoring(onLocationUpdate: @escaping (CLLocation) -> Void) {
+        // Preview implementation - no-op for previews
+    }
+    
+    nonisolated func stopLocationMonitoring() {
+        // Preview implementation - no-op for previews
+    }
 }

@@ -14,19 +14,11 @@
 			remoteGlobalIDString = FF1B96192E65235200769F71;
 			remoteInfo = "augment-ios-interview-take-home";
 		};
-		FF1B96372E65235400769F71 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = FF1B96122E65235200769F71 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = FF1B96192E65235200769F71;
-			remoteInfo = "augment-ios-interview-take-home";
-		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		FF1B961A2E65235200769F71 /* augment-ios-interview-take-home.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "augment-ios-interview-take-home.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		FF1B962C2E65235400769F71 /* augment-ios-interview-take-homeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "augment-ios-interview-take-homeTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		FF1B96362E65235400769F71 /* augment-ios-interview-take-homeUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "augment-ios-interview-take-homeUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -38,11 +30,6 @@
 		FF1B962F2E65235400769F71 /* augment-ios-interview-take-homeTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = "augment-ios-interview-take-homeTests";
-			sourceTree = "<group>";
-		};
-		FF1B96392E65235400769F71 /* augment-ios-interview-take-homeUITests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "augment-ios-interview-take-homeUITests";
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -62,13 +49,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		FF1B96332E65235400769F71 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -77,7 +57,6 @@
 			children = (
 				FF1B961C2E65235200769F71 /* augment-ios-interview-take-home */,
 				FF1B962F2E65235400769F71 /* augment-ios-interview-take-homeTests */,
-				FF1B96392E65235400769F71 /* augment-ios-interview-take-homeUITests */,
 				FF1B961B2E65235200769F71 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -87,7 +66,6 @@
 			children = (
 				FF1B961A2E65235200769F71 /* augment-ios-interview-take-home.app */,
 				FF1B962C2E65235400769F71 /* augment-ios-interview-take-homeTests.xctest */,
-				FF1B96362E65235400769F71 /* augment-ios-interview-take-homeUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -140,29 +118,6 @@
 			productReference = FF1B962C2E65235400769F71 /* augment-ios-interview-take-homeTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		FF1B96352E65235400769F71 /* augment-ios-interview-take-homeUITests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = FF1B96462E65235400769F71 /* Build configuration list for PBXNativeTarget "augment-ios-interview-take-homeUITests" */;
-			buildPhases = (
-				FF1B96322E65235400769F71 /* Sources */,
-				FF1B96332E65235400769F71 /* Frameworks */,
-				FF1B96342E65235400769F71 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				FF1B96382E65235400769F71 /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				FF1B96392E65235400769F71 /* augment-ios-interview-take-homeUITests */,
-			);
-			name = "augment-ios-interview-take-homeUITests";
-			packageProductDependencies = (
-			);
-			productName = "augment-ios-interview-take-homeUITests";
-			productReference = FF1B96362E65235400769F71 /* augment-ios-interview-take-homeUITests.xctest */;
-			productType = "com.apple.product-type.bundle.ui-testing";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -177,10 +132,6 @@
 						CreatedOnToolsVersion = 16.1;
 					};
 					FF1B962B2E65235400769F71 = {
-						CreatedOnToolsVersion = 16.1;
-						TestTargetID = FF1B96192E65235200769F71;
-					};
-					FF1B96352E65235400769F71 = {
 						CreatedOnToolsVersion = 16.1;
 						TestTargetID = FF1B96192E65235200769F71;
 					};
@@ -202,7 +153,6 @@
 			targets = (
 				FF1B96192E65235200769F71 /* augment-ios-interview-take-home */,
 				FF1B962B2E65235400769F71 /* augment-ios-interview-take-homeTests */,
-				FF1B96352E65235400769F71 /* augment-ios-interview-take-homeUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -216,13 +166,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		FF1B962A2E65235400769F71 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		FF1B96342E65235400769F71 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -246,13 +189,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		FF1B96322E65235400769F71 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -260,11 +196,6 @@
 			isa = PBXTargetDependency;
 			target = FF1B96192E65235200769F71 /* augment-ios-interview-take-home */;
 			targetProxy = FF1B962D2E65235400769F71 /* PBXContainerItemProxy */;
-		};
-		FF1B96382E65235400769F71 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = FF1B96192E65235200769F71 /* augment-ios-interview-take-home */;
-			targetProxy = FF1B96372E65235400769F71 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -399,6 +330,7 @@
 				DEVELOPMENT_TEAM = NRZUW694NF;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "This app needs location access to show weather for your current location.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -428,6 +360,7 @@
 				DEVELOPMENT_TEAM = NRZUW694NF;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "This app needs location access to show weather for your current location.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -481,40 +414,6 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/augment-ios-interview-take-home.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/augment-ios-interview-take-home";
-			};
-			name = Release;
-		};
-		FF1B96472E65235400769F71 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = NRZUW694NF;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "alanleatherman.augment-ios-interview-take-homeUITests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = "augment-ios-interview-take-home";
-			};
-			name = Debug;
-		};
-		FF1B96482E65235400769F71 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = NRZUW694NF;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "alanleatherman.augment-ios-interview-take-homeUITests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = "augment-ios-interview-take-home";
 			};
 			name = Release;
 		};
@@ -592,6 +491,7 @@
 				DEVELOPMENT_TEAM = NRZUW694NF;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "This app needs location access to show weather for your current location.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -630,23 +530,6 @@
 			};
 			name = Mock;
 		};
-		FF6D0EFC2E66339D00F930A6 /* Mock */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = NRZUW694NF;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "alanleatherman.augment-ios-interview-take-homeUITests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = "augment-ios-interview-take-home";
-			};
-			name = Mock;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -676,16 +559,6 @@
 				FF1B96442E65235400769F71 /* Debug */,
 				FF6D0EFB2E66339D00F930A6 /* Mock */,
 				FF1B96452E65235400769F71 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		FF1B96462E65235400769F71 /* Build configuration list for PBXNativeTarget "augment-ios-interview-take-homeUITests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				FF1B96472E65235400769F71 /* Debug */,
-				FF6D0EFC2E66339D00F930A6 /* Mock */,
-				FF1B96482E65235400769F71 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

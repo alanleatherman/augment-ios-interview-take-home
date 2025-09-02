@@ -46,6 +46,8 @@ protocol LocationRepositoryProtocol: Sendable {
     func requestLocationPermission() async
     func getCurrentLocation() async throws -> CLLocation
     func getAuthorizationStatus() -> CLAuthorizationStatus
+    nonisolated func startLocationMonitoring(onLocationUpdate: @escaping (CLLocation) -> Void)
+    nonisolated func stopLocationMonitoring()
 }
 
 // MARK: - Interactor Protocols
@@ -62,17 +64,21 @@ protocol WeatherInteractorProtocol {
     func loadHourlyForecast(for city: City) async
     func loadDailyForecast(for city: City) async
     
-    // Selected city management
-    func updateSelectedCityIndex(_ index: Int)
+    /// City management - Xcode was complaing about MainActor here even though WeatherInteractorProtocol implementations are @MainActor on the whole class so added here anyway
+    @MainActor func updateSelectedCityIndex(_ index: Int)
+    @MainActor func markCurrentCityAsHome()
+    @MainActor func clearHomeCity()
+    @MainActor func isHomeCity(_ city: City) -> Bool
     
-    // Home city management
-    func markCurrentCityAsHome()
-    func clearHomeCity()
-    func isHomeCity(_ city: City) -> Bool
+    /// Location monitoring integration
+    @MainActor func handleLocationUpdate(for city: City) async
 }
 
 protocol LocationInteractorProtocol {
     func requestLocationPermission() async
     func getCurrentLocation() async throws -> CLLocation
     func checkLocationPermission() -> Bool
+    func checkPermissionStatusAndRetry() async
+    nonisolated func startLocationMonitoring()
+    nonisolated func stopLocationMonitoring()
 }

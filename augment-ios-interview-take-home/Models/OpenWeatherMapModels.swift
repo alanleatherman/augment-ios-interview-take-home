@@ -2,7 +2,7 @@
 //  OpenWeatherMapModels.swift
 //  augment-ios-interview-take-home
 //
-//  Created by Kiro on 9/1/25.
+//  Created by Alan Leatherman on 9/1/25.
 //
 
 import Foundation
@@ -279,7 +279,7 @@ extension OneCallAPIResponse {
     }
     
     func toDailyWeather() -> [DailyWeather] {
-        return daily.prefix(10).map { dailyData in
+        return daily.prefix(5).map { dailyData in
             let primaryWeather = dailyData.weather.first ?? WeatherCondition(id: 0, main: "Unknown", description: "Unknown", icon: "01d")
             
             return DailyWeather(
@@ -314,6 +314,21 @@ extension OpenWeatherMapCurrentResponse {
             windDirection: wind.deg ?? 0,
             visibility: visibility,
             lastUpdated: Date()
+        )
+    }
+    
+    // Helper method to create a DailyWeather for today using current weather data
+    func toTodaysDailyWeather() -> DailyWeather {
+        let primaryWeather = weather.first ?? WeatherCondition(id: 0, main: "Unknown", description: "Unknown", icon: "01d")
+        
+        return DailyWeather(
+            id: UUID(),
+            date: Date(),
+            temperatureMin: main.tempMin,
+            temperatureMax: main.tempMax,
+            iconCode: primaryWeather.icon,
+            description: primaryWeather.description.capitalized,
+            precipitationChance: 0.0 // Current weather doesn't include precipitation chance
         )
     }
 }

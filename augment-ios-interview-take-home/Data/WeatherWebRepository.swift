@@ -31,11 +31,21 @@ final class WeatherWebRepository: WeatherRepositoryProtocol, @unchecked Sendable
         ]
         
         guard let url = components.url else {
+            print("❌ Failed to create URL for weather request")
             throw WeatherError.malformedResponse
         }
         
-        let response = try await networkService.fetch(OpenWeatherMapCurrentResponse.self, from: url)
-        return response.toWeather(for: city.id)
+        print("🌐 Fetching weather for \(city.name) at \(city.latitude), \(city.longitude)")
+        print("🌐 URL: \(url.absoluteString)")
+        
+        do {
+            let response = try await networkService.fetch(OpenWeatherMapCurrentResponse.self, from: url)
+            print("✅ Successfully fetched weather for \(city.name): \(response.name)")
+            return response.toWeather(for: city.id)
+        } catch {
+            print("❌ Failed to fetch weather for \(city.name): \(error)")
+            throw error
+        }
     }
     
     func getCurrentWeather(latitude: Double, longitude: Double) async throws -> Weather {
@@ -48,14 +58,24 @@ final class WeatherWebRepository: WeatherRepositoryProtocol, @unchecked Sendable
         ]
         
         guard let url = components.url else {
+            print("❌ Failed to create URL for coordinate-based weather request")
             throw WeatherError.malformedResponse
         }
         
-        let response = try await networkService.fetch(OpenWeatherMapCurrentResponse.self, from: url)
+        print("🌐 Fetching weather for coordinates \(latitude), \(longitude)")
+        print("🌐 URL: \(url.absoluteString)")
         
-        // Create a temporary city ID for coordinate-based requests
-        let cityId = UUID()
-        return response.toWeather(for: cityId)
+        do {
+            let response = try await networkService.fetch(OpenWeatherMapCurrentResponse.self, from: url)
+            print("✅ Successfully fetched weather for coordinates: \(response.name)")
+            
+            // Create a temporary city ID for coordinate-based requests
+            let cityId = UUID()
+            return response.toWeather(for: cityId)
+        } catch {
+            print("❌ Failed to fetch weather for coordinates \(latitude), \(longitude): \(error)")
+            throw error
+        }
     }
     
     // MARK: - Forecast Data (5-day Forecast API)
@@ -67,7 +87,34 @@ final class WeatherWebRepository: WeatherRepositoryProtocol, @unchecked Sendable
     
     func getDailyForecast(for city: City) async throws -> [DailyWeather] {
         let forecastResponse = try await getForecastData(for: city)
-        return forecastResponse.list.toDailyWeather()
+        var dailyForecast = forecastResponse.list.toDailyWeather()
+        
+        // Replace today's forecast with current weather data for more accuracy
+        if !dailyForecast.isEmpty {
+            do {
+                let currentWeatherData = try await getCurrentWeather(for: city)
+                let todayFromCurrent = DailyWeather(
+                    id: UUID(),
+                    date: Date(),
+                    temperatureMin: currentWeatherData.temperatureMin,
+                    temperatureMax: currentWeatherData.temperatureMax,
+                    iconCode: currentWeatherData.iconCode,
+                    description: currentWeatherData.description,
+                    precipitationChance: 0.0 // Current weather doesn't include precipitation chance
+                )
+                dailyForecast[0] = todayFromCurrent
+                
+                print("🌤️ Generated daily forecast with \(dailyForecast.count) days for \(city.name)")
+                print("🌤️ Today's forecast (from current weather): H:\(Int(todayFromCurrent.temperatureMax))° L:\(Int(todayFromCurrent.temperatureMin))°")
+            } catch {
+                print("🌤️ Failed to get current weather for today's forecast, using calculated forecast")
+                if let today = dailyForecast.first {
+                    print("🌤️ Today's forecast (calculated): H:\(Int(today.temperatureMax))° L:\(Int(today.temperatureMin))°")
+                }
+            }
+        }
+        
+        return dailyForecast
     }
     
     private func getForecastData(for city: City) async throws -> OpenWeatherMapForecastResponse {

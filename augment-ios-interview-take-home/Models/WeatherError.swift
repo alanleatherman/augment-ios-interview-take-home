@@ -9,7 +9,7 @@ import Foundation
 
 // MARK: - Weather Errors
 
-enum WeatherError: LocalizedError, Sendable {
+enum WeatherError: LocalizedError, Sendable, Equatable {
     case locationPermissionDenied
     case networkFailure(Error)
     case apiKeyInvalid
@@ -23,7 +23,7 @@ enum WeatherError: LocalizedError, Sendable {
     var errorDescription: String? {
         switch self {
         case .locationPermissionDenied:
-            return "Location access is required to show weather for your current location"
+            return "Location access is required to show weather for your current location. Please enable location access in Settings > Privacy & Security > Location Services."
         case .networkFailure:
             return "Unable to connect to weather service. Please check your internet connection."
         case .apiKeyInvalid:
@@ -46,7 +46,7 @@ enum WeatherError: LocalizedError, Sendable {
     var recoveryAction: String? {
         switch self {
         case .locationPermissionDenied:
-            return "Enable location access in Settings"
+            return "Open Settings"
         case .networkFailure, .apiQuotaExceeded:
             return "Try again"
         case .cityNotFound:
@@ -57,11 +57,38 @@ enum WeatherError: LocalizedError, Sendable {
             return "Retry"
         }
     }
+    
+    // MARK: - Equatable
+    
+    static func == (lhs: WeatherError, rhs: WeatherError) -> Bool {
+        switch (lhs, rhs) {
+        case (.locationPermissionDenied, .locationPermissionDenied):
+            return true
+        case (.apiKeyInvalid, .apiKeyInvalid):
+            return true
+        case (.apiQuotaExceeded, .apiQuotaExceeded):
+            return true
+        case (.malformedResponse, .malformedResponse):
+            return true
+        case (.cacheExpired, .cacheExpired):
+            return true
+        case (.cityNotFound(let lhsCity), .cityNotFound(let rhsCity)):
+            return lhsCity == rhsCity
+        case (.networkFailure, .networkFailure):
+            return true // We'll consider all network failures equal for testing
+        case (.persistenceFailure, .persistenceFailure):
+            return true // We'll consider all persistence failures equal for testing
+        case (.unknownError, .unknownError):
+            return true // We'll consider all unknown errors equal for testing
+        default:
+            return false
+        }
+    }
 }
 
 // MARK: - Location Errors
 
-enum LocationError: LocalizedError, Sendable {
+enum LocationError: LocalizedError, Sendable, Equatable {
     case permissionDenied
     case locationUnavailable(Error)
     case timeout
@@ -74,6 +101,21 @@ enum LocationError: LocalizedError, Sendable {
             return "Unable to get location: \(error.localizedDescription)"
         case .timeout:
             return "Location request timed out"
+        }
+    }
+    
+    // MARK: - Equatable
+    
+    static func == (lhs: LocationError, rhs: LocationError) -> Bool {
+        switch (lhs, rhs) {
+        case (.permissionDenied, .permissionDenied):
+            return true
+        case (.timeout, .timeout):
+            return true
+        case (.locationUnavailable, .locationUnavailable):
+            return true // We'll consider all location unavailable errors equal for testing
+        default:
+            return false
         }
     }
 }

@@ -11,19 +11,39 @@ import CoreLocation
 final class LocationWebRepository: NSObject, LocationRepositoryProtocol, @unchecked Sendable {
     private let locationManager = CLLocationManager()
     private var locationContinuation: CheckedContinuation<CLLocation, Error>?
+    private var locationUpdateHandler: ((CLLocation) -> Void)?
     
     override init() {
         super.init()
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.distanceFilter = 100 // Only notify for significant location changes (100 meters)
     }
     
+    private var permissionContinuation: CheckedContinuation<CLAuthorizationStatus, Never>?
+    
     func requestLocationPermission() async {
-        guard locationManager.authorizationStatus == .notDetermined else {
+        let currentStatus = locationManager.authorizationStatus
+        
+        // If already authorized or denied, return immediately
+        guard currentStatus == .notDetermined else {
             return
         }
         
-        locationManager.requestWhenInUseAuthorization()
+        // Wait for permission response
+        let _ = await withCheckedContinuation { continuation in
+            self.permissionContinuation = continuation
+            
+            // Add timeout for permission request
+            DispatchQueue.main.asyncAfter(deadline: .now() + 30) {
+                if self.permissionContinuation != nil {
+                    self.permissionContinuation?.resume(returning: self.locationManager.authorizationStatus)
+                    self.permissionContinuation = nil
+                }
+            }
+            
+            locationManager.requestWhenInUseAuthorization()
+        }
     }
     
     func getCurrentLocation() async throws -> CLLocation {
@@ -50,6 +70,23 @@ final class LocationWebRepository: NSObject, LocationRepositoryProtocol, @unchec
     func getAuthorizationStatus() -> CLAuthorizationStatus {
         return locationManager.authorizationStatus
     }
+    
+    // MARK: - Location Monitoring
+    
+    nonisolated func startLocationMonitoring(onLocationUpdate: @escaping (CLLocation) -> Void) {
+        guard locationManager.authorizationStatus == .authorizedWhenInUse || 
+              locationManager.authorizationStatus == .authorizedAlways else {
+            return
+        }
+        
+        locationUpdateHandler = onLocationUpdate
+        locationManager.startUpdatingLocation()
+    }
+    
+    nonisolated func stopLocationMonitoring() {
+        locationUpdateHandler = nil
+        locationManager.stopUpdatingLocation()
+    }
 }
 
 // MARK: - CLLocationManagerDelegate
@@ -58,8 +95,14 @@ extension LocationWebRepository: CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.first else { return }
         
-        locationContinuation?.resume(returning: location)
-        locationContinuation = nil
+        // Handle one-time location request
+        if let continuation = locationContinuation {
+            continuation.resume(returning: location)
+            locationContinuation = nil
+        }
+        
+        // Handle continuous location monitoring
+        locationUpdateHandler?(location)
     }
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
@@ -68,7 +111,10 @@ extension LocationWebRepository: CLLocationManagerDelegate {
     }
     
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-        // Handle authorization changes if needed
-        // This could be used to update app state
+        // Resume permission continuation if waiting
+        if let continuation = permissionContinuation {
+            continuation.resume(returning: manager.authorizationStatus)
+            permissionContinuation = nil
+        }
     }
 }

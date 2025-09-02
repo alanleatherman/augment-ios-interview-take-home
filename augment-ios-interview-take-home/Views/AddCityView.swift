@@ -44,7 +44,7 @@ struct AddCityView: View {
     }
     
     private var shouldShowEmptyState: Bool {
-        !searchText.isEmpty && displayedCities.isEmpty && !isSearching
+        !searchText.isEmpty && displayedCities.isEmpty && !isSearching && citySearchService.hasSearched
     }
     
     var body: some View {
@@ -52,6 +52,15 @@ struct AddCityView: View {
             VStack(spacing: 0) {
                 SearchBar(text: $searchText)
                     .onChange(of: searchText) { _, newValue in
+                        // Clear previous results immediately when text changes
+                        if newValue.isEmpty {
+                            citySearchService.clearResults()
+                        } else {
+                            // Set searching state immediately and clear hasSearched to prevent premature empty state
+                            citySearchService.isSearching = true
+                            citySearchService.hasSearched = false
+                        }
+                        
                         Task {
                             await citySearchService.searchCities(query: newValue)
                         }
@@ -150,7 +159,7 @@ struct SearchBar: View {
             Image(systemName: "magnifyingglass")
                 .foregroundColor(.secondary)
             
-            TextField("Search cities (e.g., Dallas, Rio, Tokyo)...", text: $text)
+            TextField("Search cities", text: $text)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .autocorrectionDisabled()
                 .textInputAutocapitalization(.words)

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct WeatherListView: View {
     @Environment(\.appState) private var appState
@@ -17,6 +18,7 @@ struct WeatherListView: View {
                 ProgressView("Loading weather data...")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if appState.weatherState.cities.isEmpty {
+                // This should rarely happen now since we always load default cities
                 EmptyStateView()
             } else {
                 List {
@@ -26,6 +28,9 @@ struct WeatherListView: View {
                         }
                     }
                     .onDelete(perform: deleteCities)
+                }
+                .refreshable {
+                    await interactors.weatherInteractor.refreshAllWeather()
                 }
             }
         }
@@ -99,64 +104,7 @@ struct WeatherRowView: View {
     }
 }
 
-struct EmptyStateView: View {
-    var body: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "cloud.sun")
-                .font(.system(size: 60))
-                .foregroundColor(.secondary)
-            
-            Text("No Cities Added")
-                .font(.title2)
-                .fontWeight(.medium)
-            
-            Text("Add cities to see their weather")
-                .font(.body)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-            
-            NavigationLink(destination: AddCityView()) {
-                Label("Add City", systemImage: "plus")
-                    .font(.headline)
-                    .foregroundColor(.white)
-                    .padding()
-                    .background(Color.blue)
-                    .cornerRadius(10)
-            }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-}
 
-struct ErrorBannerView: View {
-    let error: WeatherError
-    let onDismiss: () -> Void
-    
-    var body: some View {
-        HStack {
-            Image(systemName: "exclamationmark.triangle.fill")
-                .foregroundColor(.orange)
-            
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Error")
-                    .font(.headline)
-                
-                Text(error.localizedDescription)
-                    .font(.caption)
-            }
-            
-            Spacer()
-            
-            Button("Dismiss", action: onDismiss)
-                .font(.caption)
-        }
-        .padding()
-        .background(Color(.systemBackground))
-        .cornerRadius(8)
-        .shadow(radius: 4)
-        .padding(.horizontal)
-    }
-}
 
 #Preview {
     NavigationStack {

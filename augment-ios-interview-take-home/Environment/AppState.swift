@@ -60,12 +60,80 @@ class LocationState {
 
 @Observable
 class AppSettings {
-    var temperatureUnit: TemperatureUnit = .fahrenheit // Default to Fahrenheit
-    var refreshInterval: TimeInterval = 600 // 10 minutes
-    var enableAutoRefresh = true
-    var enableLocationServices = true
-    var lastSelectedCityIndex: Int = 0 // Persist the last selected city
-    var homeCityId: UUID? = nil // Track which city is marked as "home"
+    // Use UserDefaults for persistence
+    private let userDefaults = UserDefaults.standard
+    
+    // Temperature unit with persistence
+    var temperatureUnit: TemperatureUnit {
+        get {
+            let rawValue = userDefaults.string(forKey: "temperatureUnit") ?? TemperatureUnit.fahrenheit.rawValue
+            return TemperatureUnit(rawValue: rawValue) ?? .fahrenheit
+        }
+        set {
+            userDefaults.set(newValue.rawValue, forKey: "temperatureUnit")
+        }
+    }
+    
+    // Refresh interval with persistence
+    var refreshInterval: TimeInterval {
+        get {
+            let interval = userDefaults.double(forKey: "refreshInterval")
+            return interval > 0 ? interval : 600 // Default to 10 minutes
+        }
+        set {
+            userDefaults.set(newValue, forKey: "refreshInterval")
+        }
+    }
+    
+    // Auto refresh setting with persistence
+    var enableAutoRefresh: Bool {
+        get {
+            // Default to true if not set
+            return userDefaults.object(forKey: "enableAutoRefresh") as? Bool ?? true
+        }
+        set {
+            userDefaults.set(newValue, forKey: "enableAutoRefresh")
+        }
+    }
+    
+    // Location services setting with persistence
+    var enableLocationServices: Bool {
+        get {
+            // Default to true if not set
+            return userDefaults.object(forKey: "enableLocationServices") as? Bool ?? true
+        }
+        set {
+            userDefaults.set(newValue, forKey: "enableLocationServices")
+        }
+    }
+    
+    // Last selected city index with persistence - THIS IS THE KEY FIX
+    var lastSelectedCityIndex: Int {
+        get {
+            return userDefaults.integer(forKey: "lastSelectedCityIndex") // Defaults to 0
+        }
+        set {
+            userDefaults.set(newValue, forKey: "lastSelectedCityIndex")
+            print("💾 Persisted selected city index: \(newValue)")
+        }
+    }
+    
+    // Home city ID with persistence
+    var homeCityId: UUID? {
+        get {
+            guard let uuidString = userDefaults.string(forKey: "homeCityId") else { return nil }
+            return UUID(uuidString: uuidString)
+        }
+        set {
+            if let uuid = newValue {
+                userDefaults.set(uuid.uuidString, forKey: "homeCityId")
+                print("💾 Persisted home city ID: \(uuid)")
+            } else {
+                userDefaults.removeObject(forKey: "homeCityId")
+                print("💾 Cleared home city ID")
+            }
+        }
+    }
     
     enum TemperatureUnit: String, CaseIterable, Sendable {
         case celsius = "metric"

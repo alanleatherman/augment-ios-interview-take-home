@@ -10,6 +10,8 @@ import SwiftData
 
 @main
 struct augment_ios_interview_take_homeApp: App {
+    @State private var appContainer: AppContainer?
+    
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             City.self,
@@ -27,8 +29,28 @@ struct augment_ios_interview_take_homeApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .inject(AppEnvironment.bootstrap(modelContext: sharedModelContainer.mainContext).appContainer)
+                .inject(getAppContainer())
+                .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+                    Task {
+                        await getAppContainer().handleAppDidBecomeActive()
+                    }
+                }
+                .onReceive(NotificationCenter.default.publisher(for: UIApplication.didEnterBackgroundNotification)) { _ in
+                    Task {
+                        await getAppContainer().handleAppDidEnterBackground()
+                    }
+                }
         }
         .modelContainer(sharedModelContainer)
+    }
+    
+    private func getAppContainer() -> AppContainer {
+        if let container = appContainer {
+            return container
+        }
+        
+        let container = AppEnvironment.bootstrap(modelContext: sharedModelContainer.mainContext).appContainer
+        appContainer = container
+        return container
     }
 }

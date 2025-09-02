@@ -40,13 +40,13 @@ extension AppEnvironment {
         
         switch option {
         case .preview, .mock:
-            print("📱 Using Mock Data Repository")
+            print("📱 Using Mock Data Repository (WeatherPreviewRepository)")
             return createMockEnvironment()
         case .debug:
-            print("🌐 Using Real API Repository (Debug)")
+            print("🌐 Using Real API Repository (WeatherWebRepository) - Debug Mode")
             return createDebugEnvironment(modelContext: modelContext)
         case .production:
-            print("🚀 Using Real API Repository (Production)")
+            print("🚀 Using Real API Repository (WeatherWebRepository) - Production Mode")
             return createProductionEnvironment(modelContext: modelContext)
         }
     }
