@@ -14,7 +14,6 @@ final class LocationInteractor: LocationInteractorProtocol {
     private let repository: LocationRepositoryProtocol
     private let appState: AppState
     
-    // Observable state
     var isLoading = false
     var error: LocationError?
     
@@ -22,7 +21,6 @@ final class LocationInteractor: LocationInteractorProtocol {
         self.repository = repository
         self.appState = appState
         
-        // Initialize authorization status
         Task { @MainActor in
             appState.locationState.authorizationStatus = repository.getAuthorizationStatus()
         }
@@ -39,10 +37,8 @@ final class LocationInteractor: LocationInteractorProtocol {
             // Note: Don't clear isRequestingLocation here as it's managed by AppContainer
         }
         
-        // Get current status before request
         let initialStatus = repository.getAuthorizationStatus()
         
-        // Only request if not determined
         if initialStatus == .notDetermined {
             await repository.requestLocationPermission()
             
@@ -50,11 +46,9 @@ final class LocationInteractor: LocationInteractorProtocol {
             try? await Task.sleep(for: .milliseconds(100))
         }
         
-        // Update authorization status
         let newStatus = repository.getAuthorizationStatus()
         appState.locationState.authorizationStatus = newStatus
         
-        // Set error if permission was denied or restricted
         if newStatus == .denied || newStatus == .restricted {
             let locationError = LocationError.permissionDenied
             self.error = locationError
@@ -74,8 +68,6 @@ final class LocationInteractor: LocationInteractorProtocol {
         
         do {
             let location = try await repository.getCurrentLocation()
-            
-            // Update app state
             appState.locationState.currentLocation = location
             appState.locationState.authorizationStatus = repository.getAuthorizationStatus()
             

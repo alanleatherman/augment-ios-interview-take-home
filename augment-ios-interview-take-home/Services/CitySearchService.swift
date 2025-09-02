@@ -32,9 +32,6 @@ class CitySearchService: ObservableObject {
                 return
             }
             
-            // Loading state is already set in the view's onChange
-            // hasSearched is already set to false in the view's onChange
-            
             // Add debounce delay
             try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
             
@@ -47,7 +44,6 @@ class CitySearchService: ObservableObject {
             }
         
         do {
-            // Use MKLocalSearch for better city search results
             let request = MKLocalSearch.Request()
             request.naturalLanguageQuery = query
             request.resultTypes = [.address, .pointOfInterest]
@@ -57,7 +53,7 @@ class CitySearchService: ObservableObject {
             
             var cities: [City] = []
             
-            for item in response.mapItems.prefix(10) { // Limit to 10 results
+            for item in response.mapItems.prefix(10) {
                 if let placemark = item.placemark.location {
                     let cityName = item.placemark.locality ?? 
                                   item.placemark.subAdministrativeArea ?? 
@@ -67,7 +63,6 @@ class CitySearchService: ObservableObject {
                     
                     let countryCode = item.placemark.isoCountryCode ?? "US"
                     
-                    // Avoid duplicates
                     if !cities.contains(where: { $0.name.lowercased() == cityName.lowercased() && $0.countryCode == countryCode }) {
                         let city = City(
                             name: cityName,
@@ -80,7 +75,7 @@ class CitySearchService: ObservableObject {
                 }
             }
             
-            // Fallback to CLGeocoder if MKLocalSearch doesn't find results
+            // Fallback to CLGeocoder
             if cities.isEmpty {
                 let placemarks = try await geocoder.geocodeAddressString(query)
                 
@@ -117,7 +112,6 @@ class CitySearchService: ObservableObject {
                 }
             }
             
-            // Always reset loading state when search completes
             if !Task.isCancelled {
                 await MainActor.run {
                     isSearching = false

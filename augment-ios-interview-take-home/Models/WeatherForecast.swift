@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftData
 
 struct HourlyWeather: Codable, Identifiable, Sendable {
     let id: UUID
@@ -83,6 +84,78 @@ struct DailyWeather: Codable, Identifiable, Sendable {
         case "50": return "🌫️"
         default: return "☀️"
         }
+    }
+}
+
+// MARK: - SwiftData Models for Caching
+
+@Model
+final class CachedHourlyForecast {
+    var id: UUID
+    var cityId: UUID
+    var forecastData: Data
+    var lastUpdated: Date
+    var expiresAt: Date
+    
+    init(cityId: UUID, forecast: [HourlyWeather]) {
+        self.id = UUID()
+        self.cityId = cityId
+        self.lastUpdated = Date()
+        self.expiresAt = Date().addingTimeInterval(60 * 60) // 1 hour cache
+        
+        // Encode forecast to Data
+        do {
+            self.forecastData = try JSONEncoder().encode(forecast)
+        } catch {
+            self.forecastData = Data()
+        }
+    }
+    
+    func getHourlyForecast() -> [HourlyWeather]? {
+        do {
+            return try JSONDecoder().decode([HourlyWeather].self, from: forecastData)
+        } catch {
+            return nil
+        }
+    }
+    
+    var isExpired: Bool {
+        Date() > expiresAt
+    }
+}
+
+@Model
+final class CachedDailyForecast {
+    var id: UUID
+    var cityId: UUID
+    var forecastData: Data
+    var lastUpdated: Date
+    var expiresAt: Date
+    
+    init(cityId: UUID, forecast: [DailyWeather]) {
+        self.id = UUID()
+        self.cityId = cityId
+        self.lastUpdated = Date()
+        self.expiresAt = Date().addingTimeInterval(60 * 60) // 1 hour cache
+        
+        // Encode forecast to Data
+        do {
+            self.forecastData = try JSONEncoder().encode(forecast)
+        } catch {
+            self.forecastData = Data()
+        }
+    }
+    
+    func getDailyForecast() -> [DailyWeather]? {
+        do {
+            return try JSONDecoder().decode([DailyWeather].self, from: forecastData)
+        } catch {
+            return nil
+        }
+    }
+    
+    var isExpired: Bool {
+        Date() > expiresAt
     }
 }
 

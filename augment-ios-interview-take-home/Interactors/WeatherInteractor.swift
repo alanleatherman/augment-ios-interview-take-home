@@ -35,35 +35,27 @@ final class WeatherInteractor: WeatherInteractorProtocol {
             let repositoryType = String(describing: type(of: repository))
             print("🌤️ Using repository: \(repositoryType)")
             
-            // Always ensure default cities are present per spec requirements
-            let requiredDefaultCities = [
-                City(name: "Los Angeles", countryCode: "US", latitude: 34.0522, longitude: -118.2437),
-                City(name: "San Francisco", countryCode: "US", latitude: 37.7749, longitude: -122.4194),
-                City(name: "Austin", countryCode: "US", latitude: 30.2672, longitude: -97.7431),
-                City(name: "Lisbon", countryCode: "PT", latitude: 38.7223, longitude: -9.1393),
-                City(name: "Auckland", countryCode: "NZ", latitude: -36.8485, longitude: 174.7633)
-            ]
-            
-            // Check which default cities are missing and add them
+            // Add default cities only on first launch (when no cities exist)
             var allCities = cities
-            var addedDefaultCities = false
             
-            for defaultCity in requiredDefaultCities {
-                let cityExists = allCities.contains { existingCity in
-                    existingCity.name == defaultCity.name && 
-                    existingCity.countryCode == defaultCity.countryCode
-                }
+            if cities.isEmpty {
+                print("📍 First launch detected - adding default cities")
+                let defaultCities = [
+                    City(name: "Los Angeles", countryCode: "US", latitude: 34.0522, longitude: -118.2437),
+                    City(name: "San Francisco", countryCode: "US", latitude: 37.7749, longitude: -122.4194),
+                    City(name: "Austin", countryCode: "US", latitude: 30.2672, longitude: -97.7431),
+                    City(name: "Lisbon", countryCode: "PT", latitude: 38.7223, longitude: -9.1393),
+                    City(name: "Auckland", countryCode: "NZ", latitude: -36.8485, longitude: 174.7633)
+                ]
                 
-                if !cityExists {
-                    print("📍 Adding missing default city: \(defaultCity.name)")
+                for defaultCity in defaultCities {
                     try await repository.addCity(defaultCity)
                     allCities.append(defaultCity)
-                    addedDefaultCities = true
                 }
-            }
-            
-            if addedDefaultCities {
-                print("📍 Added missing default cities. Total cities: \(allCities.count)")
+                
+                print("📍 Added \(defaultCities.count) default cities for first launch")
+            } else {
+                print("📍 Using existing \(cities.count) cities from persistence")
             }
             
             allCities = sortCitiesWithFavoriteFirst(allCities)
@@ -283,15 +275,24 @@ final class WeatherInteractor: WeatherInteractorProtocol {
     
     func loadHourlyForecast(for city: City) async {
         do {
+            // Check cache first
             if let cachedForecast = repository.getCachedHourlyForecast(for: city.id) {
+                print("📊 Using cached hourly forecast for \(city.name) (\(cachedForecast.count) hours)")
                 appState.weatherState.hourlyForecasts[city.id] = cachedForecast
                 return
             }
             
+            print("📊 Fetching fresh hourly forecast for \(city.name)")
             // Fetch fresh data
             let forecast = try await repository.getHourlyForecast(for: city)
+            
+            // Update app state
             appState.weatherState.hourlyForecasts[city.id] = forecast
+            
+            // Cache the result
             repository.cacheHourlyForecast(forecast, for: city.id)
+            print("📊 Cached hourly forecast for \(city.name) (\(forecast.count) hours)")
+            
         } catch {
             if let weatherError = error as? WeatherError,
                case .networkFailure(let underlyingError) = weatherError,
@@ -311,13 +312,22 @@ final class WeatherInteractor: WeatherInteractorProtocol {
         do {
             // Check cache first
             if let cachedForecast = repository.getCachedDailyForecast(for: city.id) {
+                print("📊 Using cached daily forecast for \(city.name) (\(cachedForecast.count) days)")
                 appState.weatherState.dailyForecasts[city.id] = cachedForecast
                 return
             }
             
+            print("📊 Fetching fresh daily forecast for \(city.name)")
+            // Fetch fresh data
             let forecast = try await repository.getDailyForecast(for: city)
+            
+            // Update app state
             appState.weatherState.dailyForecasts[city.id] = forecast
+            
+            // Cache the result
             repository.cacheDailyForecast(forecast, for: city.id)
+            print("📊 Cached daily forecast for \(city.name) (\(forecast.count) days)")
+            
         } catch {
             // Handle cancellation errors gracefully
             if let weatherError = error as? WeatherError,

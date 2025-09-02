@@ -91,7 +91,6 @@ extension LocationWebRepository: CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.first else { return }
         
-        // Handle one-time location request
         if let continuation = locationContinuation {
             continuation.resume(returning: location)
             locationContinuation = nil

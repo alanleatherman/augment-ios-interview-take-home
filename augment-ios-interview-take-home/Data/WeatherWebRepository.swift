@@ -205,14 +205,40 @@ final class WeatherWebRepository: WeatherRepositoryProtocol, @unchecked Sendable
     
     @MainActor
     func getCachedHourlyForecast(for cityId: UUID) -> [HourlyWeather]? {
-        // For now, return nil - we can implement this later if needed
-        return nil
+        guard let modelContext = modelContext else { return nil }
+        
+        let now = Date()
+        let descriptor = FetchDescriptor<CachedHourlyForecast>(
+            predicate: #Predicate<CachedHourlyForecast> { cachedForecast in
+                cachedForecast.cityId == cityId && cachedForecast.expiresAt > now
+            }
+        )
+        
+        do {
+            let cachedForecast = try modelContext.fetch(descriptor).first
+            return cachedForecast?.getHourlyForecast()
+        } catch {
+            return nil
+        }
     }
     
     @MainActor
     func getCachedDailyForecast(for cityId: UUID) -> [DailyWeather]? {
-        // For now, return nil - we can implement this later if needed
-        return nil
+        guard let modelContext = modelContext else { return nil }
+        
+        let now = Date()
+        let descriptor = FetchDescriptor<CachedDailyForecast>(
+            predicate: #Predicate<CachedDailyForecast> { cachedForecast in
+                cachedForecast.cityId == cityId && cachedForecast.expiresAt > now
+            }
+        )
+        
+        do {
+            let cachedForecast = try modelContext.fetch(descriptor).first
+            return cachedForecast?.getDailyForecast()
+        } catch {
+            return nil
+        }
     }
     
     @MainActor
@@ -245,28 +271,90 @@ final class WeatherWebRepository: WeatherRepositoryProtocol, @unchecked Sendable
     
     @MainActor
     func cacheHourlyForecast(_ forecast: [HourlyWeather], for cityId: UUID) {
-        // For now, do nothing - we can implement this later if needed
+        guard let modelContext = modelContext else { return }
+        
+        // Remove existing cached forecast for this city
+        let descriptor = FetchDescriptor<CachedHourlyForecast>(
+            predicate: #Predicate<CachedHourlyForecast> { cachedForecast in
+                cachedForecast.cityId == cityId
+            }
+        )
+        
+        do {
+            let existingCache = try modelContext.fetch(descriptor)
+            for cached in existingCache {
+                modelContext.delete(cached)
+            }
+            
+            // Insert new cached forecast
+            let cachedForecast = CachedHourlyForecast(cityId: cityId, forecast: forecast)
+            modelContext.insert(cachedForecast)
+            
+            try modelContext.save()
+            print("💾 Cached hourly forecast for city \(cityId)")
+        } catch {
+            print("❌ Failed to cache hourly forecast: \(error)")
+        }
     }
     
     @MainActor
     func cacheDailyForecast(_ forecast: [DailyWeather], for cityId: UUID) {
-        // For now, do nothing - we can implement this later if needed
+        guard let modelContext = modelContext else { return }
+        
+        // Remove existing cached forecast for this city
+        let descriptor = FetchDescriptor<CachedDailyForecast>(
+            predicate: #Predicate<CachedDailyForecast> { cachedForecast in
+                cachedForecast.cityId == cityId
+            }
+        )
+        
+        do {
+            let existingCache = try modelContext.fetch(descriptor)
+            for cached in existingCache {
+                modelContext.delete(cached)
+            }
+            
+            // Insert new cached forecast
+            let cachedForecast = CachedDailyForecast(cityId: cityId, forecast: forecast)
+            modelContext.insert(cachedForecast)
+            
+            try modelContext.save()
+            print("💾 Cached daily forecast for city \(cityId)")
+        } catch {
+            print("❌ Failed to cache daily forecast: \(error)")
+        }
     }
     
     @MainActor
     func clearCache() {
         guard let modelContext = modelContext else { return }
         
-        let descriptor = FetchDescriptor<CachedWeather>()
-        
         do {
-            let cachedWeather = try modelContext.fetch(descriptor)
+            // Clear weather cache
+            let weatherDescriptor = FetchDescriptor<CachedWeather>()
+            let cachedWeather = try modelContext.fetch(weatherDescriptor)
             for cached in cachedWeather {
                 modelContext.delete(cached)
             }
+            
+            // Clear hourly forecast cache
+            let hourlyDescriptor = FetchDescriptor<CachedHourlyForecast>()
+            let cachedHourly = try modelContext.fetch(hourlyDescriptor)
+            for cached in cachedHourly {
+                modelContext.delete(cached)
+            }
+            
+            // Clear daily forecast cache
+            let dailyDescriptor = FetchDescriptor<CachedDailyForecast>()
+            let cachedDaily = try modelContext.fetch(dailyDescriptor)
+            for cached in cachedDaily {
+                modelContext.delete(cached)
+            }
+            
             try modelContext.save()
+            print("🗑️ Cleared all weather and forecast caches")
         } catch {
-            // Silently fail for cache clearing errors
+            print("❌ Failed to clear cache: \(error)")
         }
     }
     

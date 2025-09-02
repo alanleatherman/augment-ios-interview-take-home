@@ -21,13 +21,11 @@ struct AddCityView: View {
         if searchText.isEmpty {
             return predefinedCities
         } else {
-            // First show predefined cities that match
             let filteredPredefined = predefinedCities.filter { city in
                 city.name.localizedCaseInsensitiveContains(searchText) ||
                 city.countryCode.localizedCaseInsensitiveContains(searchText)
             }
             
-            // Then add dynamic search results (avoiding duplicates)
             let dynamicResults = citySearchService.searchResults.filter { searchResult in
                 !filteredPredefined.contains { predefined in
                     predefined.name.lowercased() == searchResult.name.lowercased() &&
