@@ -95,7 +95,8 @@ final class LocationInteractor: LocationInteractorProtocol {
     
     nonisolated func hasLocationPermission() -> Bool {
         // This can be called from any thread for quick checks
-        return true // We'll implement this properly when needed
+        let status = repository.getAuthorizationStatus()
+        return status == .authorizedWhenInUse || status == .authorizedAlways
     }
     
     func retryLocationRequest() async {

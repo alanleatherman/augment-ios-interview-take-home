@@ -13,7 +13,7 @@ struct AddCityView: View {
     
     @State private var searchText = ""
     @State private var isLoading = false
-    @StateObject private var citySearchService = CitySearchService()
+    @State private var citySearchService = CitySearchService()
     
     private let predefinedCities = City.predefinedCities
     
@@ -50,11 +50,9 @@ struct AddCityView: View {
             VStack(spacing: 0) {
                 SearchBar(text: $searchText)
                     .onChange(of: searchText) { _, newValue in
-                        // Clear previous results immediately when text changes
                         if newValue.isEmpty {
                             citySearchService.clearResults()
                         } else {
-                            // Set searching state immediately and clear hasSearched to prevent premature empty state
                             citySearchService.isSearching = true
                             citySearchService.hasSearched = false
                         }
@@ -65,7 +63,6 @@ struct AddCityView: View {
                     }
                 
                 if isSearching {
-                    // Loading state
                     VStack {
                         Spacer()
                         VStack(spacing: 16) {
@@ -80,7 +77,6 @@ struct AddCityView: View {
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if shouldShowEmptyState {
-                    // Empty state - takes full remaining space
                     VStack {
                         Spacer()
                         VStack(spacing: 16) {
@@ -102,7 +98,6 @@ struct AddCityView: View {
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
-                    // List of cities
                     List {
                         if !searchText.isEmpty && !displayedCities.isEmpty {
                             Section {
@@ -149,70 +144,7 @@ struct AddCityView: View {
     }
 }
 
-struct SearchBar: View {
-    @Binding var text: String
-    
-    var body: some View {
-        HStack {
-            Image(systemName: "magnifyingglass")
-                .foregroundColor(.secondary)
-            
-            TextField("Search cities", text: $text)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .autocorrectionDisabled()
-                .textInputAutocapitalization(.words)
-            
-            if !text.isEmpty {
-                Button("Clear") {
-                    text = ""
-                }
-                .font(.caption)
-                .foregroundColor(.blue)
-            }
-        }
-        .padding(.horizontal)
-    }
-}
 
-struct CityRowView: View {
-    let city: City
-    let onAdd: () async -> Void
-    @State private var isAdding = false
-    
-    var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(city.name)
-                    .font(.headline)
-                
-                Text(city.countryCode)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-            }
-            
-            Spacer()
-            
-            Button {
-                Task {
-                    isAdding = true
-                    await onAdd()
-                    isAdding = false
-                }
-            } label: {
-                if isAdding {
-                    ProgressView()
-                        .scaleEffect(0.8)
-                } else {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.title2)
-                        .foregroundColor(.blue)
-                }
-            }
-            .disabled(isAdding)
-        }
-        .padding(.vertical, 4)
-    }
-}
 
 #Preview {
     AddCityView()

@@ -10,22 +10,20 @@ import UIKit
 
 struct LocationPermissionDeniedView: View {
     @Environment(\.appState) private var appState
+    
     let onDismiss: () -> Void
     
     var body: some View {
         VStack(spacing: 20) {
-            // Icon
             Image(systemName: "location.slash.fill")
                 .font(.system(size: 50))
                 .foregroundColor(.red)
             
-            // Title
             Text("Location Access Denied")
                 .font(.title2)
                 .fontWeight(.semibold)
                 .foregroundColor(.primary)
             
-            // Description
             VStack(spacing: 12) {
                 Text("To show weather for your current location, please enable location access in Settings.")
                     .font(.body)
@@ -39,9 +37,7 @@ struct LocationPermissionDeniedView: View {
                     .padding(.horizontal, 8)
             }
             
-            // Action buttons
             VStack(spacing: 12) {
-                // Open Settings button
                 Button {
                     openSettings()
                 } label: {
@@ -57,7 +53,6 @@ struct LocationPermissionDeniedView: View {
                     .background(.blue, in: RoundedRectangle(cornerRadius: 25))
                 }
                 
-                // Dismiss button
                 Button {
                     onDismiss()
                 } label: {
@@ -77,15 +72,12 @@ struct LocationPermissionDeniedView: View {
     }
     
     private func openSettings() {
-        // Clear the error to provide better UX
         appState.weatherState.error = nil
         
-        // Open Settings app
         if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
             UIApplication.shared.open(settingsUrl)
         }
         
-        // Dismiss the view
         onDismiss()
     }
 }

@@ -10,13 +10,14 @@ import MapKit
 import CoreLocation
 
 @MainActor
-class CitySearchService: ObservableObject {
-    @Published var searchResults: [City] = []
-    @Published var isSearching = false
-    @Published var hasSearched = false
+@Observable
+class CitySearchService {
+    var searchResults: [City] = []
+    var isSearching = false
+    var hasSearched = false
     
     private let geocoder = CLGeocoder()
-    private var searchTask: Task<Void, Never>?
+    private nonisolated(unsafe) var searchTask: Task<Void, Never>?
     
     func searchCities(query: String) async {
         // Cancel any existing search task
@@ -33,10 +34,9 @@ class CitySearchService: ObservableObject {
             }
             
             // Add debounce delay
-            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+            try? await Task.sleep(nanoseconds: 500_000_000)
             
-            // Check if task was cancelled during delay
-            guard !Task.isCancelled else { 
+            guard !Task.isCancelled else {
                 await MainActor.run {
                     isSearching = false
                 }

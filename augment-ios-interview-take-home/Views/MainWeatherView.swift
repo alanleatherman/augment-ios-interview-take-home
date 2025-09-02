@@ -19,10 +19,8 @@ struct MainWeatherView: View {
             if appState.weatherState.cities.isEmpty {
                 EmptyStateView()
             } else {
-                // Main swipeable weather pages
                 TabView(selection: Binding(
                     get: { 
-                        // Ensure the selected index is valid
                         let index = appState.weatherState.selectedCityIndex
                         let maxIndex = max(0, appState.weatherState.cities.count - 1)
                         return min(index, maxIndex)
@@ -39,7 +37,6 @@ struct MainWeatherView: View {
                 .tabViewStyle(.page(indexDisplayMode: .never)) // Hide default dots
                 .indexViewStyle(.page(backgroundDisplayMode: .never))
                 .onAppear {
-                    // Ensure proper initialization when view appears
                     if !appState.weatherState.cities.isEmpty {
                         let currentIndex = appState.weatherState.selectedCityIndex
                         let maxIndex = appState.weatherState.cities.count - 1
@@ -49,10 +46,8 @@ struct MainWeatherView: View {
                     }
                 }
                 
-                // Overlay controls
                 VStack {
                     HStack {
-                        // Location button
                         Button {
                             Task {
                                 await container.navigateToCurrentLocationCity()
@@ -78,7 +73,6 @@ struct MainWeatherView: View {
                         
                         Spacer()
                         
-                        // List button
                         Button {
                             showingCityList = true
                         } label: {
@@ -90,11 +84,10 @@ struct MainWeatherView: View {
                         }
                     }
                     .padding(.horizontal, 20)
-                    .padding(.top, 60) // Enough space to clear Dynamic Island
+                    .padding(.top, 60)
                     
                     Spacer()
                     
-                    // Custom page indicators with location arrow
                     CustomPageIndicator(
                         currentIndex: appState.weatherState.selectedCityIndex,
                         totalPages: appState.weatherState.cities.count,
@@ -127,7 +120,6 @@ struct MainWeatherView: View {
         }
         .overlay(alignment: .top) {
             VStack(spacing: 8) {
-                // Location loading indicator
                 if appState.locationState.isRequestingLocation && !appState.weatherState.cities.isEmpty {
                     HStack(spacing: 8) {
                         ProgressView()
@@ -145,7 +137,6 @@ struct MainWeatherView: View {
                     .transition(.move(edge: .top).combined(with: .opacity))
                 }
                 
-                // Error banner
                 if let error = appState.weatherState.error {
                     ErrorBannerView(error: error) {
                         appState.weatherState.error = nil
@@ -155,7 +146,6 @@ struct MainWeatherView: View {
             .animation(.easeInOut(duration: 0.3), value: appState.locationState.isRequestingLocation)
         }
         .overlay(alignment: .center) {
-            // Location permission denied overlay
             if case .locationPermissionDenied = appState.weatherState.error {
                 ZStack {
                     Color.black.opacity(0.3)
@@ -174,11 +164,9 @@ struct MainWeatherView: View {
             }
         }
         .onAppear {
-            // Start location monitoring when view appears if we have current location cities
             container.startLocationMonitoringIfNeeded()
         }
         .onDisappear {
-            // Stop location monitoring when view disappears to save battery
             container.stopLocationMonitoring()
         }
     }
@@ -216,261 +204,9 @@ struct MainWeatherView: View {
     }
 }
 
-struct WeatherPageView: View {
-    @Environment(\.appState) private var appState
-    @Environment(\.interactors) private var interactors
-    
-    let cityIndex: Int
-    
-    private var city: City? {
-        guard cityIndex >= 0 && cityIndex < appState.weatherState.cities.count else { return nil }
-        return appState.weatherState.cities[cityIndex]
-    }
-    
-    private var weather: Weather? {
-        guard let city = city else { return nil }
-        return appState.weatherState.weatherData[city.id]
-    }
-    
-    private var hourlyForecast: [HourlyWeather] {
-        guard let city = city else { return [] }
-        return appState.weatherState.hourlyForecasts[city.id] ?? []
-    }
-    
-    private var dailyForecast: [DailyWeather] {
-        guard let city = city else { return [] }
-        return appState.weatherState.dailyForecasts[city.id] ?? []
-    }
-    
-    private var todayHighLowFormatted: String {
-        // Use current weather API data for today's high/low (more accurate)
-        return weather?.temperatureRangeFormatted ?? "H:--° L:--°"
-    }
-    
-    var body: some View {
-        GeometryReader { geometry in
-            ScrollView(showsIndicators: false) {
-                VStack(spacing: 0) {
-                    // Header with city name and current weather
-                    VStack(spacing: 16) {
-                        // Location indicator - only show for current location cities
-                        if city?.isCurrentLocation == true {
-                            HStack {
-                                Image(systemName: "location.fill")
-                                    .font(.caption)
-                                    .weatherSecondaryForegroundColor(for: weather)
-                                Text("Current Location")
-                                    .font(.caption)
-                                    .fontWeight(.medium)
-                                    .weatherSecondaryForegroundColor(for: weather)
-                            }
-                            .padding(.top, 40) // Reduced from 80 to 40 (less than half)
-                        } else {
-                            // Add spacing for non-home cities
-                            Spacer()
-                                .frame(height: 40) // Reduced from 100 to 40 (less than half)
-                        }
-                        
-                        // City name
-                        Text(city?.name ?? "Loading...")
-                            .font(.largeTitle)
-                            .fontWeight(.light)
-                            .weatherForegroundColor(for: weather)
-                        
-                        if let weather = weather {
-                            // Current temperature
-                            Text(weather.temperatureFormatted)
-                                .font(.system(size: 96, weight: .thin))
-                                .weatherForegroundColor(for: weather)
-                                .offset(x: 12) // Slight offset to center better with degree symbol
-                            
-                            // Weather description
-                            Text(weather.description.capitalized)
-                                .font(.title2)
-                                .weatherSecondaryForegroundColor(for: weather)
-                            
-                            // High/Low - use daily forecast for today if available, otherwise fall back to current weather
-                            Text(todayHighLowFormatted)
-                                .font(.title3)
-                                .weatherSecondaryForegroundColor(for: weather)
-                        } else {
-                            ProgressView()
-                                .scaleEffect(1.5)
-                                .tint(weather.map { WeatherTheme.textColor(for: $0) } ?? .white)
-                                .padding(.vertical, 40)
-                        }
-                    }
-                    .frame(minHeight: geometry.size.height * 0.4) // Reduced from 0.6 to 0.4 (less than half)
-                    
-                    // Weather details section
-                    VStack(spacing: 20) {
-                        if let weather = weather {
-                            // Current conditions description
-                            Text(weather.detailedDescription ?? "Current conditions will continue.")
-                                .font(.body)
-                                .weatherSecondaryForegroundColor(for: weather)
-                                .multilineTextAlignment(.center)
-                                .padding(.horizontal)
-                        }
-                        
-                        // Hourly forecast
-                        if !hourlyForecast.isEmpty {
-                            HourlyForecastCard(forecast: hourlyForecast, weather: weather)
-                        }
-                        
-                        // 10-day forecast
-                        if !dailyForecast.isEmpty {
-                            DailyForecastCard(forecast: dailyForecast, weather: weather)
-                        }
-                    }
-                    .padding(.horizontal)
-                    .padding(.bottom, 100) // Extended bottom padding to utilize black area
-                }
-            }
-        }
-        .weatherBackground(for: weather)
-        .task {
-            await loadWeatherData()
-        }
-        .refreshable {
-            await refreshWeatherData()
-        }
-    }
-    
-    private func loadWeatherData() async {
-        guard let city = city else { return }
-        await interactors.weatherInteractor.loadHourlyForecast(for: city)
-        await interactors.weatherInteractor.loadDailyForecast(for: city)
-    }
-    
-    private func refreshWeatherData() async {
-        guard let city = city else { return }
-        await interactors.weatherInteractor.refreshWeather(for: city)
-        await loadWeatherData()
-    }
-}
 
-struct HourlyForecastCard: View {
-    let forecast: [HourlyWeather]
-    let weather: Weather?
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Image(systemName: "clock")
-                    .weatherSecondaryForegroundColor(for: weather)
-                Text("HOURLY FORECAST")
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .weatherSecondaryForegroundColor(for: weather)
-            }
-            .padding(.horizontal)
-            
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 20) {
-                    ForEach(forecast.prefix(24)) { hour in
-                        VStack(spacing: 8) {
-                            Text(hour.timeFormatted)
-                                .font(.caption)
-                                .weatherSecondaryForegroundColor(for: weather)
-                                .frame(width: 50)
-                                .multilineTextAlignment(.center)
-                            
-                            Text(hour.weatherEmoji)
-                                .font(.title2)
-                            
-                            Text("\(Int(hour.temperature.rounded()))°")
-                                .font(.body)
-                                .fontWeight(.medium)
-                                .weatherForegroundColor(for: weather)
-                        }
-                        .frame(width: 50)
-                    }
-                }
-                .padding(.horizontal)
-            }
-        }
-        .padding(.vertical, 16)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
-    }
-}
 
-struct DailyForecastCard: View {
-    let forecast: [DailyWeather]
-    let weather: Weather?
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Image(systemName: "calendar")
-                    .weatherSecondaryForegroundColor(for: weather)
-                Text("5-DAY FORECAST")
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .weatherSecondaryForegroundColor(for: weather)
-            }
-            .padding(.horizontal)
-            
-            VStack(spacing: 0) {
-                ForEach(Array(forecast.prefix(5).enumerated()), id: \.element.id) { index, day in
-                    let isToday = Calendar.current.isDateInToday(day.date)
-                    let displayMinTemp = isToday && weather != nil ? weather!.temperatureMin : day.temperatureMin
-                    let displayMaxTemp = isToday && weather != nil ? weather!.temperatureMax : day.temperatureMax
-                    let displayEmoji = isToday && weather != nil ? weather!.weatherConditionEmoji : day.weatherEmoji
-                    
-                    HStack {
-                        Text(day.dayFormatted)
-                            .font(.body)
-                            .weatherForegroundColor(for: weather)
-                            .frame(width: 60, alignment: .leading)
-                        
-                        Spacer()
-                        
-                        Text(displayEmoji)
-                            .font(.title3)
-                            .frame(width: 30)
-                        
-                        Spacer()
-                        
-                        // Temperature range bar
-                        HStack(spacing: 8) {
-                            Text("\(Int(displayMinTemp.rounded()))°")
-                                .font(.body)
-                                .weatherSecondaryForegroundColor(for: weather)
-                                .frame(width: 30, alignment: .trailing)
-                            
-                            // Temperature range indicator
-                            RoundedRectangle(cornerRadius: 2)
-                                .fill(
-                                    LinearGradient(
-                                        colors: [.yellow, .orange],
-                                        startPoint: .leading,
-                                        endPoint: .trailing
-                                    )
-                                )
-                                .frame(width: 60, height: 4)
-                            
-                            Text("\(Int(displayMaxTemp.rounded()))°")
-                                .font(.body)
-                                .weatherForegroundColor(for: weather)
-                                .frame(width: 30, alignment: .leading)
-                        }
-                    }
-                    .padding(.horizontal)
-                    .padding(.vertical, 8)
-                    
-                    if index != forecast.prefix(5).count - 1 {
-                        Divider()
-                            .background(weather.map { WeatherTheme.secondaryTextColor(for: $0) } ?? .white.opacity(0.3))
-                            .padding(.horizontal)
-                    }
-                }
-            }
-        }
-        .padding(.vertical, 16)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
-    }
-}
+
 
 #Preview("Empty State") {
     MainWeatherView()
@@ -654,32 +390,4 @@ private func createPreviewContainer() -> AppContainer {
     return AppContainer(appState: appState, interactors: .stub)
 }
 
-// MARK: - Custom Page Indicator
 
-struct CustomPageIndicator: View {
-    let currentIndex: Int
-    let totalPages: Int
-    let cities: [City]
-    
-    var body: some View {
-        HStack(spacing: 8) {
-            ForEach(0..<totalPages, id: \.self) { index in
-                Group {
-                    if index < cities.count && cities[index].isCurrentLocation {
-                        // Show location arrow for current location city
-                        Image(systemName: "location.fill")
-                            .font(.system(size: 8, weight: .medium))
-                            .foregroundColor(index == currentIndex ? .white : .white.opacity(0.5))
-                    } else {
-                        // Show regular dot for other cities
-                        Circle()
-                            .fill(index == currentIndex ? .white : .white.opacity(0.5))
-                            .frame(width: 8, height: 8)
-                    }
-                }
-                .scaleEffect(index == currentIndex ? 1.2 : 1.0)
-                .animation(.easeInOut(duration: 0.2), value: currentIndex)
-            }
-        }
-    }
-}

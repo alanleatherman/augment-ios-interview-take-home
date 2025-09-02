@@ -14,7 +14,6 @@ struct EmptyStateView: View {
     
     var body: some View {
         ZStack {
-            // Background gradient
             LinearGradient(
                 colors: [.blue.opacity(0.6), .purple.opacity(0.4)],
                 startPoint: .topLeading,
@@ -25,7 +24,6 @@ struct EmptyStateView: View {
             VStack(spacing: 32) {
                 Spacer()
                 
-                // Weather icon
                 Image(systemName: "cloud.sun.fill")
                     .font(.system(size: 80))
                     .foregroundStyle(.white.opacity(0.9))
@@ -37,7 +35,6 @@ struct EmptyStateView: View {
                         .foregroundColor(.white)
                     
                     if appState.locationState.isRequestingLocation {
-                        // Show loading state
                         VStack(spacing: 12) {
                             ProgressView()
                                 .scaleEffect(1.2)
@@ -59,7 +56,6 @@ struct EmptyStateView: View {
                 
                 if !appState.locationState.isRequestingLocation {
                     VStack(spacing: 16) {
-                        // Location button
                         Button {
                             Task {
                                 await container.addCurrentLocationCity()
@@ -92,10 +88,7 @@ struct EmptyStateView: View {
                             .font(.subheadline)
                             .foregroundColor(.white.opacity(0.6))
                         
-                        // Add cities manually button
                         Button {
-                            // This would trigger showing the city list/add city view
-                            // For now, we'll add some default cities
                             Task {
                                 await addDefaultCities()
                             }
@@ -117,7 +110,6 @@ struct EmptyStateView: View {
                 
                 Spacer()
                 
-                // Error message if any (but not location permission denied - that gets special treatment)
                 if let error = appState.weatherState.error, error != .locationPermissionDenied {
                     VStack(spacing: 8) {
                         Text(error.localizedDescription)
@@ -143,7 +135,6 @@ struct EmptyStateView: View {
             }
         }
         .overlay(alignment: .center) {
-            // Location permission denied overlay
             if case .locationPermissionDenied = appState.weatherState.error {
                 ZStack {
                     Color.black.opacity(0.3)
@@ -196,7 +187,6 @@ struct EmptyStateView: View {
     }
     
     private func addDefaultCities() async {
-        // Add some default cities as mentioned in requirements
         let defaultCities = [
             City(name: "Los Angeles", countryCode: "US", latitude: 34.0522, longitude: -118.2437),
             City(name: "San Francisco", countryCode: "US", latitude: 37.7749, longitude: -122.4194),
@@ -213,15 +203,12 @@ struct EmptyStateView: View {
     private func handleErrorRecovery(_ error: WeatherError) {
         switch error {
         case .locationPermissionDenied:
-            // Clear the error first to provide better UX
             appState.weatherState.error = nil
             
-            // Open Settings app to allow user to enable location permission
             if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
                 UIApplication.shared.open(settingsUrl)
             }
         default:
-            // Clear error and retry
             appState.weatherState.error = nil
             Task {
                 await container.addCurrentLocationCity()
