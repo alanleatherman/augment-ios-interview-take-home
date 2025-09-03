@@ -12,18 +12,18 @@ A modern iOS weather application built with SwiftUI and SwiftData, featuring rea
 ### Core Functionality
 - **Smart City Management**: Add cities via intelligent search with MKLocalSearch and CLGeocoder fallback
 - **Current Location Integration**: Automatic weather updates for your current location with comprehensive permission handling
-- **Detailed Weather Display**: Current conditions with hourly (24-hour) and daily (5-day) weather forecasts
+- **Detailed Weather Display**: Current conditions with hourly (24-hour by 3-hours (API limitation)) and daily (5-day) weather forecasts
 - **Persistent Storage**: City selections and cached weather data persist across app sessions using SwiftData
 - **Pull-to-Refresh**: Manual refresh capability with intelligent cache management and loading states
 - **Offline Support**: Cached weather data available when network is unavailable with graceful degradation
 - **Dynamic Weather Themes**: Adaptive background gradients and text colors based on current weather conditions
 
 ### User Experience
-- **Onboarding Flow**: Guided setup with location permission requests and default city suggestions
+- **Local Weather Flow**: Guided setup with location permission requests and default city suggestions
 - **Empty State Management**: Contextual prompts for adding cities or enabling location services
 - **Error Recovery**: User-friendly error messages with actionable recovery options
 - **Loading States**: Smooth loading indicators throughout the app with proper state management
-- **Accessibility**: VoiceOver support and Dynamic Type compatibility
+- **Accessibility**: Setup with accessibility in mind
 
 ### Technical Highlights
 - **SwiftUI + SwiftData**: Modern iOS development stack with declarative UI and type-safe persistence
@@ -97,7 +97,7 @@ augment-ios-interview-take-home/
 - **LocationInteractor**: Handles location permissions, current location fetching, and comprehensive error states
 
 #### UI Layer
-- **Native iOS Design**: Weather app-inspired interface with dynamic backgrounds, cards, and smooth animations
+- **Native iOS Design**: Weather app-inspired interface with dynamic backgrounds, cards, and smooth animations (inspired by the native iOS Weather app)
 - **Responsive Components**: Adaptive layouts that work across different screen sizes with proper spacing
 - **Error Handling**: User-friendly error messages with actionable recovery options
 - **Empty States**: Contextual onboarding flow with location permission guidance
